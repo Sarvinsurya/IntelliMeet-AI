@@ -1,0 +1,29 @@
+{
+  "name": "heshika",
+  "email": "heshika1744@gmail.com",
+  "row": 2,
+  "job_id": "job_1776103991743",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/heshika_2_cfc60a2b_HESHIKA_VARTHINI_S_FlowCV_Resume_2026-04-07 (2) - Heshika varthini.pdf",
+  "parse_ok": true,
+  "word_count": 812,
+  "score": 80,
+  "threshold": 50.0,
+  "above_threshold": true,
+  "reasoning": "The resume matches the role well, with a strong emphasis on Python, SQL, data analysis, machine learning, and data visualization, which are all key requirements for the position. The candidate's projects and experience demonstrate a solid foundation in these areas, making them a strong fit for the role.",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": [],
+  "scheduled_event": {
+    "ok": true,
+    "event_link": "https://www.google.com/calendar/event?eid=MHZ1NjczODNhcDJmY2g3ZW1nbzlrOHVyY2cgc2Fydmluc3VyeWEwNkBt",
+    "meet_link": "https://meet.google.com/wdo-mjco-tjm",
+    "start": "2026-04-13T18:13:47.165511+00:00",
+    "end": "2026-04-13T18:43:47.165511+00:00",
+    "event_id": "0vu67383ap2fch7emgo9k8urcg",
+    "calendar_id": "primary",
+    "candidate_invited": true,
+    "candidate_email": "heshika1744@gmail.com",
+    "error": null
+  },
+  "reschedule_count": 0
+}
