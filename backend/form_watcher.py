@@ -724,16 +724,19 @@ class FormWatcher:
                 "Form needs a File upload question and the response sheet must have that column."
             )
 
-        self.total_processed += 1
-
         # Fire the callback (saves resume and triggers pipeline)
+        # Only increment counter if response was actually processed (not skipped as duplicate)
         try:
-            await self.callback(
+            was_processed = await self.callback(
                 response=response,
                 resume_bytes=resume_bytes,
                 resume_filename=resume_filename,
                 job_id=self.job_id,
             )
+            # Only increment counter if callback returned True (response was processed)
+            # If it returned False, it means duplicate was skipped
+            if was_processed:
+                self.total_processed += 1
         except Exception as e:
             logger.error(f"Callback failed for {response.get('email')}: {e}")
             raise

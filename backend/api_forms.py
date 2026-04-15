@@ -98,6 +98,7 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
     """
     Fires for every form response. Saves resume, then parses it and scores against threshold.
     Now also saves candidate and interview to database.
+    Returns: True if processed successfully, False if skipped (duplicate)
     """
     import json
     import uuid
@@ -114,7 +115,7 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
         existing_candidate = crud.get_candidate_by_email(db, job_id, email) if email else None
         if existing_candidate:
             _log.info(f"SKIP: Candidate {name} ({email}) already processed for job {job_id}")
-            return
+            return False  # Return False to indicate duplicate was skipped
     finally:
         db.close()
 
@@ -360,6 +361,8 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
             print(f"  [RESUME ERROR] {name} (row {row}): {e}")
             response["above_threshold"] = None
             response["resume_score"] = None
+    
+    return True  # Return True to indicate response was processed successfully
 
 
 @router.post("/watch")
