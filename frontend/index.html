@@ -1187,16 +1187,41 @@
         }
 
         .candidate-badge {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text2);
+            display: inline-block;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-right: 8px;
         }
 
         .candidate-badge.score {
             background: rgba(99, 102, 241, 0.2);
             color: #818cf8;
+        }
+
+        .candidate-badge.phone {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+
+        .candidate-view-btn {
+            font-size: 12px;
+            padding: 0;
+            background: none;
+            color: var(--text2);
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            margin-top: 8px;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .candidate-view-btn:hover {
+            opacity: 1;
         }
 
         .candidate-right {
@@ -1836,33 +1861,133 @@
             }
         }
 
-        async function downloadExisting(id) {
+        async function downloadAllResumes(id) {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = 'Re-downloading...';
+            button.disabled = true;
+            button.style.opacity = '0.6';
+            
             try {
-                const r = await fetch(`${API}/forms/download-existing/${id}`, { method: "POST" });
-                const data = await r.json();
-                if (data.processed > 0) {
-                    alert("Downloaded " + data.processed + " resume(s). Check backend/uploads/ folder.");
+                // Step 1: Re-download all resumes from Google Form (this will also save them)
+                const redownloadResponse = await fetch(`${API}/forms/download-existing/${id}`, { method: "POST" });
+                const redownloadData = await redownloadResponse.json();
+                
+                if (!redownloadResponse.ok) {
+                    throw new Error(redownloadData.detail || 'Failed to re-download resumes');
                 }
-                refreshStatus(id);
+                
+                console.log(`✅ Re-downloaded ${redownloadData.processed} resumes`);
+                
+                // Step 2: Now download them all as a ZIP
+                button.textContent = 'Creating ZIP...';
+                
+                const zipResponse = await fetch(`${API}/forms/jobs/${id}/download-all-resumes`);
+                
+                if (!zipResponse.ok) {
+                    throw new Error('Failed to create ZIP file');
+                }
+                
+                const blob = await zipResponse.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `resumes_${id}_${new Date().toISOString().split('T')[0]}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                button.textContent = `Downloaded ${redownloadData.processed}!`;
+                button.style.background = 'var(--green)';
+                button.style.opacity = '1';
+                console.log('✅ All resumes downloaded as ZIP file');
+                
+                // Refresh to show updated candidates
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.style.background = '';
+                    button.style.opacity = '';
+                    renderJobs(); // Refresh the UI to show updated candidates
+                }, 3000);
             } catch (e) {
-                alert("Failed: " + e.message);
+                console.error("Download failed:", e);
+                button.textContent = 'Failed';
+                button.style.background = 'var(--red)';
+                button.style.opacity = '1';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.style.background = '';
+                    button.style.opacity = '';
+                }, 2000);
             }
         }
 
+        function viewResume(email, name) {
+            // Open resume in new tab
+            const url = `${API}/forms/view-resume?email=${encodeURIComponent(email)}`;
+            window.open(url, '_blank');
+        }
+
         async function checkInterviewResponses() {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = 'Checking...';
+            button.disabled = true;
+            button.style.opacity = '0.6';
+            
             try {
                 const r = await fetch(`${API}/forms/check-interview-responses`, { method: "POST" });
                 const data = await r.json();
                 if (!r.ok) throw new Error(data.detail || "Failed");
+                
                 if (data.rescheduled > 0) {
-                    alert("Checked " + data.checked + " interview(s). Rescheduled " + data.rescheduled + " (candidate had declined — new invite sent).");
+                    button.textContent = `${data.rescheduled} rescheduled`;
+                    button.style.background = 'var(--yellow)';
+                    console.log(`📅 Checked ${data.checked} interviews - ${data.rescheduled} declined and rescheduled with new invites`);
+                    button.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        button.style.background = '';
+                    }, 3000);
                 } else if (data.checked > 0) {
-                    alert("Checked " + data.checked + " interview(s). No declines needing reschedule.");
+                    button.textContent = 'All confirmed';
+                    button.style.background = 'var(--green)';
+                    console.log(`✅ Checked ${data.checked} interviews - no declines`);
+                    button.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        button.style.background = '';
+                    }, 3000);
                 } else {
-                    alert("No scheduled interviews to check.");
+                    button.textContent = 'No interviews';
+                    button.style.opacity = '0.7';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        button.style.opacity = '';
+                    }, 2000);
                 }
             } catch (e) {
-                alert("Failed: " + e.message);
+                console.error("Check responses failed:", e);
+                button.textContent = 'Failed';
+                button.style.background = 'var(--red)';
+                button.style.opacity = '1';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.style.background = '';
+                    button.style.opacity = '';
+                }, 2000);
             }
         }
 
@@ -1905,16 +2030,17 @@
                 lastCheckedEl.textContent = lastChecked;
             }
 
-            // Update new responses count
+            // Update "New since monitoring started" count
             const newResponsesEl = card.querySelector('.info-row:nth-child(3) .info-val');
             if (newResponsesEl) {
                 newResponsesEl.textContent = info.total_processed ?? 0;
             }
 
-            // Update existing responses count (shouldn't change, but just in case)
-            const existingResponsesEl = card.querySelector('.info-row:nth-child(2) .info-val');
-            if (existingResponsesEl) {
-                existingResponsesEl.textContent = info.existing_responses ?? 0;
+            // Update "Total responses" count (existing + new)
+            const totalResponsesEl = card.querySelector('.info-row:nth-child(2) .info-val');
+            if (totalResponsesEl) {
+                const totalCount = (info.existing_responses ?? 0) + (info.total_processed ?? 0);
+                totalResponsesEl.textContent = totalCount;
             }
         }
 
@@ -1987,12 +2113,13 @@
                                 <div class="candidate-email">${esc(candidate.email)}</div>
                                 <div class="candidate-meta">
                                     ${candidate.score ? `<span class="candidate-badge score">Score: ${candidate.score}/100</span>` : ''}
-                                    ${candidate.phone ? `<span class="candidate-badge">${esc(candidate.phone)}</span>` : ''}
+                                    ${candidate.phone ? `<span class="candidate-badge phone">${esc(candidate.phone)}</span>` : ''}
                                 </div>
                             </div>
                             <div class="candidate-right">
                                 <div class="candidate-status ${statusClass}">${statusLabel}</div>
                                 ${timeHTML}
+                                <button class="candidate-view-btn" onclick="viewResume('${candidate.email}', '${esc(candidate.name)}')" title="Open resume in new tab">View resume</button>
                             </div>
                         </div>
                     </div>
@@ -2100,10 +2227,10 @@
                 <span class="live-text">Active — monitoring for new submissions</span>
               </div>
               <div class="fw-actions">
-                <button class="small-btn" onclick="downloadExisting('${id}')" title="Download resumes for all existing rows in the sheet">Download existing</button>
-                <button class="small-btn" onclick="pollNow('${id}')" title="Manually check for new form submissions now">Check now</button>
-                <button class="small-btn" onclick="checkInterviewResponses()" title="If any candidate declined, reschedule to a new slot and send new invite">Check responses</button>
-                <button class="small-btn-red" onclick="disconnectForm('${id}')">Disconnect</button>
+                <button class="small-btn" onclick="downloadAllResumes('${id}')" title="Download a ZIP file with all candidate resumes">Download all resumes</button>
+                <button class="small-btn" onclick="pollNow('${id}')" title="Check for NEW form submissions right now (don't wait for auto-check)">Check now</button>
+                <button class="small-btn" onclick="checkInterviewResponses()" title="Check Calendar for interview responses (accepted/declined) and reschedule if needed">Check responses</button>
+                <button class="small-btn-red" onclick="disconnectForm('${id}')" title="Stop monitoring this form">Disconnect</button>
               </div>
             </div>
             <div class="info-grid">
@@ -2112,11 +2239,11 @@
                 <span class="info-val bold">${esc(info.form_title || '')}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">Existing responses</span>
-                <span class="info-val">${info.existing_responses ?? 0}</span>
+                <span class="info-label">Total responses</span>
+                <span class="info-val">${(info.existing_responses ?? 0) + (info.total_processed ?? 0)}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">New responses found</span>
+                <span class="info-label">New since monitoring started</span>
                 <span class="info-val accent">${info.total_processed ?? 0}</span>
               </div>
               <div class="info-row">

@@ -1,0 +1,16 @@
+{
+  "name": "Ezhilvendan B K",
+  "email": "ezhilvendan13@gmail.com",
+  "row": 3,
+  "job_id": "job_1776269359944",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/Ezhilvendan B K_3_5983376a_EZHIL_VENDAN_B_K_RESUME - Ezhil vendan.pdf",
+  "parse_ok": true,
+  "word_count": 247,
+  "score": 40,
+  "threshold": 70.0,
+  "above_threshold": false,
+  "reasoning": "Poor fit: role requires data science and machine learning skills, but resume emphasizes software development and programming skills with limited evidence of data analysis or machine learning experience. The candidate's projects and skills are more focused on web and application development rather than data science.",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": []
+}

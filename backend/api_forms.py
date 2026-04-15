@@ -7,13 +7,17 @@ When a new response arrives, resume is auto-downloaded from the form and saved.
 import logging
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from form_watcher import watcher_registry
 from database import get_db
 import crud
+import models
 from datetime import datetime
+import zipfile
+import io
+import glob
 
 _log = logging.getLogger(__name__)
 
@@ -725,16 +729,38 @@ async def get_job_candidates(job_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/download-existing/{job_id}")
-async def download_existing_now(job_id: str):
-    """Process all existing responses in the sheet (download their resumes). Use when you have existing rows that were never processed."""
+async def download_existing_now(job_id: str, db: Session = Depends(get_db)):
+    """Re-download all resumes from the Google Form for existing candidates."""
     w = watcher_registry.get(job_id)
     if not w:
         raise HTTPException(404, "No watcher for this job")
-    before = w.total_processed
-    w.last_row = 1  # Process from first data row
+    
+    # Delete all existing candidates and interviews for this job to allow re-processing
+    candidates = crud.get_candidates_by_job(db, job_id)
+    candidate_count = len(candidates)
+    
+    for candidate in candidates:
+        # Delete interviews first (foreign key constraint)
+        db.query(models.Interview).filter(models.Interview.candidate_id == candidate.id).delete()
+        # Then delete candidate
+        db.query(models.Candidate).filter(models.Candidate.id == candidate.id).delete()
+    db.commit()
+    _log.info(f"Deleted {candidate_count} existing candidates for job {job_id} to allow re-download")
+    
+    # Save current counters
+    saved_total_processed = w.total_processed
+    saved_existing = w.existing_responses
+    
+    # Reset to beginning to reprocess all rows
+    w.last_row = 1
+    
+    # Download all resumes
     await w._poll_once()
-    added = w.total_processed - before
-    return {"ok": True, "processed": added, "total_processed": w.total_processed}
+    
+    # Restore counters (don't double-count the re-downloaded ones)
+    w.total_processed = saved_total_processed
+    
+    return {"ok": True, "processed": candidate_count, "total_processed": saved_total_processed}
 
 
 # Max times we reschedule when candidate declines (then stop and leave last invite pending)
@@ -819,3 +845,70 @@ async def check_interview_responses():
         })
         _log.info("Rescheduled interview for %s (declined by: %s) -> %s", email, declined_who, new_result.get("start"))
     return {"checked": checked, "rescheduled": rescheduled, "details": details}
+
+
+@router.get("/jobs/{job_id}/download-all-resumes")
+async def download_all_resumes(job_id: str, db: Session = Depends(get_db)):
+    """Download all resumes for a job as a ZIP file."""
+    # Get all candidates for this job
+    candidates = crud.get_candidates_by_job(db, job_id)
+    
+    if not candidates:
+        raise HTTPException(404, "No candidates found for this job")
+    
+    # Create a ZIP file in memory
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        resumes_found = 0
+        
+        for candidate in candidates:
+            if candidate.resume_path:
+                resume_file = Path(candidate.resume_path)
+                
+                # Check if file exists
+                if resume_file.exists():
+                    # Add resume to ZIP with candidate name prefix
+                    zip_file.write(resume_file, f"{candidate.name}_{resume_file.name}")
+                    resumes_found += 1
+        
+        if resumes_found == 0:
+            raise HTTPException(404, "No resume files found")
+    
+    # Prepare the response
+    zip_buffer.seek(0)
+    
+    return StreamingResponse(
+        io.BytesIO(zip_buffer.read()),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f"attachment; filename=resumes_{job_id}.zip"
+        }
+    )
+
+
+@router.get("/view-resume")
+async def view_resume(email: str, db: Session = Depends(get_db)):
+    """View a candidate's resume by email."""
+    # Find candidate by email in database
+    candidate = db.query(models.Candidate).filter(models.Candidate.email == email).first()
+    
+    if not candidate or not candidate.resume_path:
+        raise HTTPException(404, f"No resume found for {email}")
+    
+    resume_file = Path(candidate.resume_path)
+    
+    # Check if file exists
+    if not resume_file.exists():
+        raise HTTPException(404, f"Resume file not found at: {resume_file}")
+    
+    # Return the file for viewing in browser
+    media_type = "application/pdf" if resume_file.suffix == ".pdf" else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    
+    return FileResponse(
+        resume_file,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f"inline; filename={resume_file.name}"
+        }
+    )
