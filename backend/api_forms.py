@@ -668,6 +668,62 @@ async def poll_now(job_id: str):
     return {"polled": True, "total_processed": w.total_processed}
 
 
+@router.get("/jobs/{job_id}/candidates")
+async def get_job_candidates(job_id: str, db: Session = Depends(get_db)):
+    """Get all candidates for a specific job with their interview status"""
+    from datetime import datetime, timezone
+    
+    candidates_data = []
+    candidates = crud.get_candidates_by_job(db, job_id)
+    
+    for candidate in candidates:
+        # Get interview info if exists
+        interview = None
+        interview_status = "rejected"  # default: below threshold
+        scheduled_time = None
+        interview_time_status = None  # upcoming, starting_soon, completed
+        
+        if candidate.score and candidate.score >= 50:  # Assuming 50 is threshold
+            # Get the latest interview for this candidate
+            interviews = db.query(crud.models.Interview).filter(
+                crud.models.Interview.candidate_id == candidate.id
+            ).order_by(crud.models.Interview.created_at.desc()).all()
+            
+            if interviews:
+                interview = interviews[0]
+                interview_status = interview.status
+                scheduled_time = interview.scheduled_start
+                
+                # Determine interview time status
+                now = datetime.now(timezone.utc)
+                time_diff = (interview.scheduled_start.replace(tzinfo=timezone.utc) - now).total_seconds() / 60
+                
+                if time_diff < 0:  # Interview time passed
+                    interview_time_status = "completed"
+                elif time_diff <= 30:  # Within 30 minutes
+                    interview_time_status = "starting_soon"
+                else:  # Future interview
+                    interview_time_status = "upcoming"
+        
+        candidates_data.append({
+            "id": candidate.id,
+            "name": candidate.name,
+            "email": candidate.email,
+            "phone": candidate.phone,
+            "score": candidate.score,
+            "applied_at": candidate.applied_at.isoformat() if candidate.applied_at else None,
+            "interview_status": interview_status,
+            "interview_time_status": interview_time_status,
+            "scheduled_time": scheduled_time.isoformat() if scheduled_time else None,
+        })
+    
+    return {
+        "ok": True,
+        "job_id": job_id,
+        "candidates": candidates_data
+    }
+
+
 @router.post("/download-existing/{job_id}")
 async def download_existing_now(job_id: str):
     """Process all existing responses in the sheet (download their resumes). Use when you have existing rows that were never processed."""

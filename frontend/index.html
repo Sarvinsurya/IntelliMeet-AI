@@ -929,6 +929,151 @@
             color: rgba(255, 255, 255, 0.12);
             font-family: 'JetBrains Mono', monospace;
         }
+
+        /* Candidates List Section */
+        .candidates-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .candidates-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .candidates-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .candidates-count {
+            font-size: 13px;
+            color: var(--text2);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .candidate-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .candidate-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+        }
+
+        .candidate-card.rejected {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .candidate-card.starting-soon {
+            border-left-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .candidate-card.upcoming {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .candidate-card.completed {
+            border-left-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .candidate-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 16px;
+        }
+
+        .candidate-left {
+            flex: 1;
+        }
+
+        .candidate-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .candidate-email {
+            font-size: 13px;
+            color: var(--text2);
+            margin-bottom: 8px;
+        }
+
+        .candidate-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .candidate-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text2);
+        }
+
+        .candidate-badge.score {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+        }
+
+        .candidate-right {
+            text-align: right;
+        }
+
+        .candidate-status {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .candidate-status.rejected {
+            color: #ef4444;
+        }
+
+        .candidate-status.starting-soon {
+            color: #f59e0b;
+        }
+
+        .candidate-status.upcoming {
+            color: #10b981;
+        }
+
+        .candidate-status.completed {
+            color: #3b82f6;
+        }
+
+        .candidate-time {
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .no-candidates {
+            text-align: center;
+            padding: 32px;
+            color: var(--text2);
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -1531,14 +1676,44 @@
                         jobs[id].info = jobData.watcher_info;
                         jobs[id].lastChecked = jobData.last_checked;
                         
-                        // Re-render the entire jobs list to show updated data
-                        renderJobs();
+                        // Only update dynamic fields without re-rendering entire page
+                        updateJobCardDynamicFields(id, jobData);
                         
                         console.log(`Status refreshed for ${id}: last_checked=${jobData.last_checked}`);
                     }
                 }
             } catch (e) {
                 console.error("Failed to refresh status:", e);
+            }
+        }
+
+        function updateJobCardDynamicFields(jobId, jobData) {
+            // Find the job card in the DOM
+            const card = document.querySelector(`[data-job-id="${jobId}"]`);
+            if (!card) return;
+
+            const info = jobData.watcher_info;
+            if (!info) return;
+
+            // Update last checked time
+            const lastCheckedEl = card.querySelector('.info-row:nth-child(4) .info-val');
+            if (lastCheckedEl) {
+                const lastChecked = (jobData.last_checked)
+                    ? utcToISTTime(jobData.last_checked)
+                    : "pending...";
+                lastCheckedEl.textContent = lastChecked;
+            }
+
+            // Update new responses count
+            const newResponsesEl = card.querySelector('.info-row:nth-child(3) .info-val');
+            if (newResponsesEl) {
+                newResponsesEl.textContent = info.total_processed ?? 0;
+            }
+
+            // Update existing responses count (shouldn't change, but just in case)
+            const existingResponsesEl = card.querySelector('.info-row:nth-child(2) .info-val');
+            if (existingResponsesEl) {
+                existingResponsesEl.textContent = info.existing_responses ?? 0;
             }
         }
 
@@ -1560,12 +1735,97 @@
             saveJobsToLocalStorage();
         }
 
-        // ── Render ────────────────────────────────────────────────────────────
-        function renderJobs() {
-            const container = document.getElementById("jobs-list");
-            container.innerHTML = "";
+        // ── Fetch Candidates ──────────────────────────────────────────────────
+        async function fetchCandidates(jobId) {
+            try {
+                const response = await fetch(`${API}/forms/jobs/${jobId}/candidates`);
+                if (!response.ok) return [];
+                const data = await response.json();
+                return data.candidates || [];
+            } catch (error) {
+                console.error(`Failed to fetch candidates for ${jobId}:`, error);
+                return [];
+            }
+        }
 
-            for (const [id, job] of Object.entries(jobs)) {
+        function renderCandidates(candidates) {
+            if (candidates.length === 0) {
+                return `
+                    <div class="candidates-section">
+                        <div class="candidates-header">
+                            <span class="candidates-title">Candidates</span>
+                            <span class="candidates-count">0 applicants</span>
+                        </div>
+                        <div class="no-candidates">No candidates yet. Waiting for form submissions...</div>
+                    </div>
+                `;
+            }
+
+            const statusLabels = {
+                rejected: 'Rejected',
+                upcoming: 'Interview Scheduled',
+                starting_soon: 'Starting Soon',
+                completed: 'Interview Completed'
+            };
+
+            const candidatesHTML = candidates.map(candidate => {
+                const statusClass = candidate.interview_time_status || 'rejected';
+                const statusLabel = statusLabels[statusClass] || 'Pending';
+                
+                let timeHTML = '';
+                if (candidate.scheduled_time) {
+                    const scheduledTime = utcToIST(candidate.scheduled_time);
+                    timeHTML = `<div class="candidate-time">${scheduledTime}</div>`;
+                }
+
+                return `
+                    <div class="candidate-card ${statusClass}">
+                        <div class="candidate-info">
+                            <div class="candidate-left">
+                                <div class="candidate-name">${esc(candidate.name)}</div>
+                                <div class="candidate-email">${esc(candidate.email)}</div>
+                                <div class="candidate-meta">
+                                    ${candidate.score ? `<span class="candidate-badge score">Score: ${candidate.score}/100</span>` : ''}
+                                    ${candidate.phone ? `<span class="candidate-badge">${esc(candidate.phone)}</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="candidate-right">
+                                <div class="candidate-status ${statusClass}">${statusLabel}</div>
+                                ${timeHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="candidates-section">
+                    <div class="candidates-header">
+                        <span class="candidates-title">Candidates</span>
+                        <span class="candidates-count">${candidates.length} applicant${candidates.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    ${candidatesHTML}
+                </div>
+            `;
+        }
+
+        // ── Render ────────────────────────────────────────────────────────────
+        let isRendering = false; // Flag to prevent concurrent renders
+        
+        async function renderJobs() {
+            // Prevent concurrent renders that cause duplicates
+            if (isRendering) {
+                console.log('Render already in progress, skipping...');
+                return;
+            }
+            
+            isRendering = true;
+            
+            try {
+                const container = document.getElementById("jobs-list");
+                container.innerHTML = "";
+
+                for (const [id, job] of Object.entries(jobs)) {
                 const card = document.createElement("div");
                 card.className = "job-card slide-up";
                 card.setAttribute("data-job-id", id);
@@ -1672,6 +1932,10 @@
           </div>`;
                 }
 
+                // Fetch candidates for this job
+                const candidates = await fetchCandidates(id);
+                const candidatesHTML = renderCandidates(candidates);
+
                 card.innerHTML = `
         <div class="job-header">
           <div class="job-title-section">
@@ -1681,8 +1945,12 @@
           <button class="remove-btn" onclick="removeJob('${id}')" title="Remove job">×</button>
         </div>
         ${watcherHTML}
+        ${candidatesHTML}
       `;
                 container.appendChild(card);
+                }
+            } finally {
+                isRendering = false; // Reset flag when done
             }
         }
 
