@@ -1,0 +1,29 @@
+{
+  "name": "heshika",
+  "email": "heshika1744@gmail.com",
+  "row": 2,
+  "job_id": "job_1776269359944",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/heshika_2_d2a71739_HESHIKA_VARTHINI_S_FlowCV_Resume_2026-04-07 (2) - Heshika varthini.pdf",
+  "parse_ok": true,
+  "word_count": 812,
+  "score": 92,
+  "threshold": 70.0,
+  "above_threshold": true,
+  "reasoning": "1) The role's domain is Data Science/Machine Learning/AI, as indicated by the job description requiring data analysis, machine learning model building, and collaboration with senior team members. 2) The candidate's primary domain from their projects is also Data Science/Machine Learning/AI, with projects focusing on ML model development, data analytics, and natural language processing. 3) The domains match, indicating the candidate qualifies for this role. 4) Given the match, the score is based ",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": [],
+  "scheduled_event": {
+    "ok": true,
+    "event_link": "https://www.google.com/calendar/event?eid=b3Awc3JjZ3F0dW1pYXJ2OGdmaDlsZTNwM3Mgc2Fydmluc3VyeWEwNkBt",
+    "meet_link": "https://meet.google.com/gbz-buph-epu",
+    "start": "2026-04-17T04:30:00+00:00",
+    "end": "2026-04-17T05:00:00+00:00",
+    "event_id": "op0srcgqtumiarv8gfh9le3p3s",
+    "calendar_id": "primary",
+    "candidate_invited": true,
+    "candidate_email": "heshika1744@gmail.com",
+    "error": null
+  },
+  "reschedule_count": 0
+}

@@ -1168,16 +1168,20 @@
         }
 
         .candidate-name {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
             color: var(--text);
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            letter-spacing: -0.02em;
+            text-transform: capitalize;
         }
 
         .candidate-email {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text2);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            font-weight: 450;
+            opacity: 0.85;
         }
 
         .candidate-meta {
@@ -1188,40 +1192,47 @@
 
         .candidate-badge {
             display: inline-block;
-            font-size: 12px;
-            padding: 5px 12px;
+            font-size: 13px;
+            padding: 6px 14px;
             border-radius: 8px;
-            font-weight: 500;
-            margin-right: 8px;
+            font-weight: 600;
+            margin-right: 10px;
+            letter-spacing: -0.01em;
         }
 
         .candidate-badge.score {
-            background: rgba(99, 102, 241, 0.2);
-            color: #818cf8;
+            background: rgba(99, 102, 241, 0.18);
+            color: #a5b4fc;
         }
 
         .candidate-badge.phone {
-            background: rgba(100, 116, 139, 0.2);
-            color: #94a3b8;
+            background: rgba(100, 116, 139, 0.18);
+            color: #cbd5e1;
         }
 
         .candidate-view-btn {
+            display: inline-block;
             font-size: 12px;
-            padding: 0;
-            background: none;
-            color: var(--text2);
+            padding: 6px 14px;
+            background: rgba(100, 116, 139, 0.18);
+            color: #cbd5e1;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 500;
-            opacity: 0.6;
-            transition: opacity 0.2s;
+            font-weight: 600;
+            transition: all 0.2s;
             margin-top: 8px;
-            text-decoration: underline;
-            text-underline-offset: 2px;
+            letter-spacing: -0.01em;
         }
 
         .candidate-view-btn:hover {
-            opacity: 1;
+            background: rgba(100, 116, 139, 0.3);
+            color: #e2e8f0;
+            transform: translateY(-1px);
+        }
+
+        .candidate-view-btn:active {
+            transform: translateY(0);
         }
 
         .candidate-right {
@@ -1229,30 +1240,34 @@
         }
 
         .candidate-status {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
 
         .candidate-status.rejected {
-            color: #ef4444;
+            color: #f87171;
         }
 
         .candidate-status.starting-soon {
-            color: #f59e0b;
+            color: #fbbf24;
         }
 
         .candidate-status.upcoming {
-            color: #10b981;
+            color: #34d399;
         }
 
         .candidate-status.completed {
-            color: #3b82f6;
+            color: #60a5fa;
         }
 
         .candidate-time {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text2);
+            font-weight: 500;
+            opacity: 0.9;
         }
 
         .no-candidates {
@@ -1372,7 +1387,6 @@
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit',
                 hour12: true
             });
         }
@@ -1390,7 +1404,6 @@
                 timeZone: 'Asia/Kolkata',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit',
                 hour12: true
             });
         }
@@ -2227,7 +2240,7 @@
                 <span class="live-text">Active — monitoring for new submissions</span>
               </div>
               <div class="fw-actions">
-                <button class="small-btn" onclick="downloadAllResumes('${id}')" title="Download a ZIP file with all candidate resumes">Download all resumes</button>
+                <button class="small-btn" onclick="downloadAllResumes('${id}')" title="Re-download all resume files (does not re-score or re-schedule)">Download all resumes</button>
                 <button class="small-btn" onclick="pollNow('${id}')" title="Check for NEW form submissions right now (don't wait for auto-check)">Check now</button>
                 <button class="small-btn" onclick="checkInterviewResponses()" title="Check Calendar for interview responses (accepted/declined) and reschedule if needed">Check responses</button>
                 <button class="small-btn-red" onclick="disconnectForm('${id}')" title="Stop monitoring this form">Disconnect</button>

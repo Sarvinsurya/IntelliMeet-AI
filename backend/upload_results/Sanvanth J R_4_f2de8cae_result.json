@@ -1,0 +1,16 @@
+{
+  "name": "Sanvanth J R",
+  "email": "sanvanthramakrishnan@gmail.com",
+  "row": 4,
+  "job_id": "job_1776269359944",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/Sanvanth J R_4_f2de8cae_71762231046_SANVANTH_J_R_RESUME - Sanvanth Ramakrishnan.pdf",
+  "parse_ok": true,
+  "word_count": 251,
+  "score": 42,
+  "threshold": 70.0,
+  "above_threshold": false,
+  "reasoning": "1) The role's domain is Data Science/Machine Learning/AI, as it requires collecting, cleaning, and analyzing data, writing basic programs using languages like Python and SQL, and assisting in building simple machine learning models. 2) The candidate's primary domain from their projects is Web Development, as their main projects (Fab-Track, BookMart, and FabUnitX) focus on web app development, e-commerce, and e-book subscription systems. 3) The domains do not match, as Web Development is not the ",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": []
+}

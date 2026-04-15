@@ -74,18 +74,185 @@ def score_resume_with_llm(
                 base_url=GROQ_BASE_URL,
                 api_key=api_key,
             )
-            system_msg = """You are a strict HR screener. You score ONLY how well the candidate fits the given role.
+            system_msg = """You are a strict technical recruiter who evaluates if candidates are QUALIFIED for a specific role.
 
-CRITICAL: Score = fit to the role, NOT resume quality. If the role is "Creator" (content, storytelling, video, design, branding) and the resume is only Python/SQL/data — give a LOW score (e.g. 15-35). If the role is "Data Engineer" and the resume is content/writing — also LOW. Never give a high score when the resume's main focus does not match the role's main focus. Your reasoning must state whether the resume matches the role or not (e.g. "Poor fit: role requires X, resume emphasizes Y.")."""
+CORE PRINCIPLE: Only candidates whose PRIMARY CAREER FOCUS matches the role domain should score above threshold.
 
-            user_msg = f"""JOB/ROLE:
+EVALUATION PROCESS:
+
+STEP 1 - IDENTIFY ROLE DOMAIN
+Extract the PRIMARY domain this role needs from the job description:
+- Is it Data Science/ML/AI?
+- Is it Web Development (Frontend/Backend/Full-stack)?
+- Is it DevOps/Cloud/Infrastructure?
+- Is it Mobile Development?
+- Is it something else?
+
+STEP 2 - IDENTIFY CANDIDATE'S PRIMARY DOMAIN
+Look at their ACTUAL WORK (not interests/certifications):
+- What are their projects ACTUALLY about?
+- What did they build in previous jobs/internships?
+- What is their degree focused on?
+
+STEP 3 - DOMAIN MATCH DECISION
+Ask: "Is this candidate's PRIMARY domain the SAME as the role's domain?"
+
+IF YES → Can score 70-98 (depending on depth/quality)
+IF NO → MUST score below 55 (even if they know some overlapping tools)
+
+CRITICAL DISTINCTION EXAMPLES:
+
+Example 1 - Data Science Role:
+✅ Score 70+: Resume shows ML projects, data analysis work, statistics degree
+❌ Score <55: Resume shows web apps (React/Node), even if they know Python/SQL
+→ Why? Python/SQL are TOOLS used in many fields. Web dev ≠ Data Science.
+
+Example 2 - Backend Developer Role:
+✅ Score 70+: Resume shows API development, microservices, database design
+❌ Score <55: Resume shows ML models, data pipelines, even if they know Node.js
+→ Why? Backend dev ≠ Data Engineering. Different career paths.
+
+Example 3 - Frontend Developer Role:
+✅ Score 70+: Resume shows React/Vue apps, UI/UX work, responsive design
+❌ Score <55: Resume shows data dashboards using React, but primary focus is data analysis
+→ Why? Using React for dashboards ≠ Frontend developer career.
+
+SCORING BANDS:
+
+85-98: EXCEPTIONAL MATCH
+- Primary domain = role domain
+- Multiple substantial projects in this exact domain
+- Direct work experience in this domain
+- Education aligned with this domain
+
+70-84: GOOD MATCH
+- Primary domain = role domain
+- Several projects in this domain
+- Some relevant experience or strong education
+- Meets all core requirements
+
+50-69: WEAK MATCH - DIFFERENT PRIMARY DOMAIN
+- Primary domain ≠ role domain
+- Has SOME overlapping tools/skills
+- But clearly pursuing a different career path
+- Would need complete retraining
+
+25-49: POOR MATCH
+- Completely different domain
+- Minimal overlapping skills
+- Wrong career direction
+
+STRICT RULES:
+1. Knowing common tools (Python, SQL, Git) does NOT make someone qualified for every role that uses those tools
+2. "Interested in X" or "certified in X" WITHOUT projects in X = NOT qualified in X
+3. If their projects are in domain A and role needs domain B → score MUST be <55
+4. Be ruthlessly honest about PRIMARY domain from their actual work
+5. Give precise scores: 23, 38, 47, 52, 58, 63, 71, 78, 84, 88, 92, 96
+6. NEVER use multiples of 5 or 10"""
+
+            user_msg = f"""JOB REQUIREMENTS:
 {jd}
 
-RESUME:
+CANDIDATE RESUME:
 {resume}
 
-Output ONLY valid JSON, no other text:
-{{"score": <0-100 fit to role only>, "above_threshold": <true if score >= {threshold}>, "reasoning": "<1-2 sentences: does resume match this role? Why or why not?>"}}"""
+YOUR TASK: Determine if this candidate's PRIMARY CAREER DOMAIN matches what this role needs.
+
+FOLLOW THESE STEPS EXACTLY:
+
+**STEP 1: What domain does this ROLE need?**
+Read the job description carefully. Is this role for:
+- Data Science / Machine Learning / AI?
+- Web Development (Frontend/Backend/Full-stack)?
+- Mobile Development?
+- DevOps / Cloud / Infrastructure?
+- Another specific domain?
+
+**STEP 2: What is the candidate's PRIMARY domain?**
+Look at their ACTUAL PROJECT WORK (most important evidence):
+- List their 3-5 main projects
+- What did each project focus on? (e.g., "Web app for e-commerce", "ML model for prediction", "Mobile game")
+- What domain do these projects collectively represent?
+
+Also check:
+- Previous job titles and what they built there
+- What their degree/education focused on
+
+**STEP 3: Do the domains MATCH?**
+Compare STEP 1 and STEP 2.
+
+If PRIMARY domains are THE SAME:
+  → Candidate qualifies for this role → Score 70-98 based on depth/quality
+  
+If PRIMARY domains are DIFFERENT:
+  → Candidate does NOT qualify → Score MUST be 25-54
+  → Even if they know some common tools (Python, SQL, Git)
+  → Tools alone ≠ Domain expertise
+  → BUT within 25-54, differentiate based on quality/education/interest
+
+**STEP 4: Assign Score**
+
+IF DOMAINS MATCH (score 70-98):
+- 90-98: Exceptional - multiple strong projects, work experience, perfect education
+- 78-89: Strong - several good projects, relevant experience or education
+- 70-77: Good - meets requirements, some projects in domain
+
+IF DOMAINS DON'T MATCH (score 25-54):
+Even though both candidates are rejected, you MUST DIFFERENTIATE them based on:
+
+CRITICAL: Give DIFFERENT scores even if both are from the same wrong domain!
+
+Evaluate these factors to differentiate:
+1. **Certifications in target domain** (+3-8 points)
+   - Has ML/DS certification vs none
+2. **Relevant coursework** (+2-6 points)
+   - Took data analysis/ML courses vs none
+3. **Tool proficiency** (+2-5 points)
+   - Knows Python, SQL, Pandas vs just basic programming
+4. **Interest signals** (+1-4 points)
+   - Explicitly mentions "interested in data science" vs no mention
+5. **Side projects** (+2-6 points)
+   - Any data-related hobby projects vs none
+6. **Education relevance** (+2-5 points)
+   - CS degree vs non-technical degree
+
+Within the rejection range:
+- 47-54: Different domain + multiple relevant certs/courses + clear DS interest
+- 39-46: Different domain + some relevant tools/certs + mentions interest
+- 31-38: Different domain + basic tools only (Python/SQL) + no DS interest
+- 25-30: Completely unrelated field + no overlap
+
+EXAMPLE TO FORCE DIFFERENTIATION:
+Both are web devs for DS role (both rejected):
+- Candidate A: Python, ML certification, "interested in data science" → Score 49
+- Candidate B: Python, no certs, no DS interest mentioned → Score 38
+→ 11 point difference! Do NOT give them the same score.
+
+CRITICAL REMINDERS:
+- Web Development ≠ Data Science (even if both use Python)
+- Data Science ≠ Backend Development (even if both use databases)
+- Mobile Development ≠ Frontend Development (even if both build UIs)
+- Certifications or "interests" WITHOUT projects = does NOT count
+
+MANDATORY DIFFERENTIATION:
+NO TWO CANDIDATES should receive the EXACT SAME SCORE unless they are truly identical (extremely rare).
+
+When both are rejected but from same domain, find the differentiators:
+✓ Count certifications: 2 certs vs 0 certs = +6-8 points difference
+✓ Check interests section: mentions "data science" vs doesn't = +3-5 points
+✓ Tool depth: knows Pandas/NumPy vs just Python = +3-4 points
+✓ Coursework: took ML course vs didn't = +4-6 points
+
+EXAMPLE - Both web devs, both rejected for DS role:
+- Candidate A: Python, MySQL, "Interested in Data Analysis & ML", has ML certification → Score 49
+- Candidate B: Python, MySQL, React projects only, no DS interest → Score 38
+→ Must be 10+ point difference based on interest+certification
+
+Threshold for this role: {threshold}
+Give PRECISE, VARIED scores (NOT multiples of 5/10): use 28, 34, 38, 42, 46, 49, 52, 58, 63, 71, 78, 84, 88, 91, 94, 97
+
+Return ONLY valid JSON:
+{{"score": <integer 0-100>, "above_threshold": <boolean>, "reasoning": "<State: 1) Role's domain, 2) Candidate's primary domain from projects, 3) Match decision, 4) If rejected: what factors affected their score within rejection range>"}}"""
 
             resp = client.chat.completions.create(
                 model=GROQ_MODEL,
@@ -93,7 +260,7 @@ Output ONLY valid JSON, no other text:
                     {"role": "system", "content": system_msg},
                     {"role": "user", "content": user_msg},
                 ],
-                temperature=0.1,
+                temperature=0.9,  # High temp to force score differentiation
             )
             raw = (resp.choices[0].message.content or "").strip()
             # Strip markdown code block if present

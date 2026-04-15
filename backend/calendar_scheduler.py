@@ -24,6 +24,11 @@ LATEST_MEETING_START_HOUR = 18  # 6 PM
 LATEST_MEETING_START_MINUTE = 30  # 6:30 PM
 # Buffer time between meetings (in minutes)
 MEETING_BUFFER_MINUTES = 5  # 5-minute gap between meetings
+# Lunch break: 1:00 PM to 2:00 PM IST (no meetings during this time)
+LUNCH_START_HOUR = 13  # 1 PM
+LUNCH_START_MINUTE = 0
+LUNCH_END_HOUR = 14  # 2 PM
+LUNCH_END_MINUTE = 0
 
 
 def _parse_rfc3339(s: str) -> datetime:
@@ -45,6 +50,7 @@ def _is_within_business_hours(dt: datetime, duration_minutes: int) -> bool:
     Check if a datetime slot is within business hours (10 AM - 7:30 PM IST).
     Meeting must start after 10:00 AM and end before 7:30 PM.
     Latest start time: 6:30 PM (for 60-min meeting to end by 7:30 PM).
+    IMPORTANT: No meetings during lunch break (1:00 PM - 2:00 PM IST).
     """
     import pytz
     
@@ -71,6 +77,15 @@ def _is_within_business_hours(dt: datetime, duration_minutes: int) -> bool:
     latest_start = dt_ist.replace(hour=LATEST_MEETING_START_HOUR, minute=LATEST_MEETING_START_MINUTE, second=0, microsecond=0)
     if dt_ist > latest_start:
         return False
+    
+    # Lunch break check: meeting must not overlap with 1:00 PM - 2:00 PM
+    lunch_start = dt_ist.replace(hour=LUNCH_START_HOUR, minute=LUNCH_START_MINUTE, second=0, microsecond=0)
+    lunch_end = dt_ist.replace(hour=LUNCH_END_HOUR, minute=LUNCH_END_MINUTE, second=0, microsecond=0)
+    
+    # Check if meeting overlaps with lunch time
+    # Meeting overlaps if: (meeting_start < lunch_end) AND (meeting_end > lunch_start)
+    if dt_ist < lunch_end and meeting_end > lunch_start:
+        return False  # Meeting overlaps with lunch break
     
     return True
 

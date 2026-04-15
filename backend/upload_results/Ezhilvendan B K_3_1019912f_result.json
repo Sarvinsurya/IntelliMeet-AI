@@ -1,0 +1,16 @@
+{
+  "name": "Ezhilvendan B K",
+  "email": "ezhilvendan13@gmail.com",
+  "row": 3,
+  "job_id": "job_1776269359944",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/Ezhilvendan B K_3_1019912f_EZHIL_VENDAN_B_K_RESUME - Ezhil vendan.pdf",
+  "parse_ok": true,
+  "word_count": 247,
+  "score": 42,
+  "threshold": 70.0,
+  "above_threshold": false,
+  "reasoning": "1) The role's domain is Data Science/Machine Learning/AI, as it requires collecting, cleaning, and analyzing data, writing basic programs using languages like Python and SQL, and assisting in building simple machine learning models. 2) The candidate's primary domain from their projects is Web Development, as their main projects (Esar Bank, DocSync, ChitHub) focus on building web applications, document collaboration apps, and desktop applications for chit-fund management. 3) The domains do not ma",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": []
+}

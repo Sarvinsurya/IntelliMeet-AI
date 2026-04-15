@@ -730,37 +730,67 @@ async def get_job_candidates(job_id: str, db: Session = Depends(get_db)):
 
 @router.post("/download-existing/{job_id}")
 async def download_existing_now(job_id: str, db: Session = Depends(get_db)):
-    """Re-download all resumes from the Google Form for existing candidates."""
+    """Re-download resume files ONLY without re-processing, re-scoring, or re-scheduling."""
     w = watcher_registry.get(job_id)
     if not w:
         raise HTTPException(404, "No watcher for this job")
     
-    # Delete all existing candidates and interviews for this job to allow re-processing
+    # Get all candidates for this job from database
     candidates = crud.get_candidates_by_job(db, job_id)
-    candidate_count = len(candidates)
     
+    if not candidates:
+        return {"ok": True, "processed": 0, "message": "No candidates found"}
+    
+    # Re-download resume files from Google Drive using the form sheet
+    from form_watcher import get_google_creds
+    import googleapiclient.discovery
+    
+    creds = get_google_creds()
+    sheets_service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
+    drive_service = googleapiclient.discovery.build('drive', 'v3', credentials=creds)
+    
+    # Get all responses from the sheet (using Sheet1 as default sheet name)
+    result = sheets_service.spreadsheets().values().get(
+        spreadsheetId=w.sheet_id,
+        range="A2:Z1000"
+    ).execute()
+    
+    rows = result.get('values', [])
+    downloaded_count = 0
+    
+    # For each candidate, find their row in the sheet and re-download the resume
     for candidate in candidates:
-        # Delete interviews first (foreign key constraint)
-        db.query(models.Interview).filter(models.Interview.candidate_id == candidate.id).delete()
-        # Then delete candidate
-        db.query(models.Candidate).filter(models.Candidate.id == candidate.id).delete()
-    db.commit()
-    _log.info(f"Deleted {candidate_count} existing candidates for job {job_id} to allow re-download")
+        for row_idx, row in enumerate(rows, start=2):
+            # Match by email
+            if len(row) > w.col_map.get('email', -1):
+                row_email = row[w.col_map['email']].strip() if w.col_map.get('email') else ""
+                
+                if row_email == candidate.email and w.col_map.get('resume') and len(row) > w.col_map['resume']:
+                    resume_url = row[w.col_map['resume']].strip()
+                    
+                    if resume_url and 'drive.google.com' in resume_url:
+                        try:
+                            # Extract file ID and download
+                            import re
+                            file_id_match = re.search(r'/d/([a-zA-Z0-9_-]+)', resume_url) or re.search(r'id=([a-zA-Z0-9_-]+)', resume_url)
+                            if file_id_match:
+                                file_id = file_id_match.group(1)
+                                request = drive_service.files().get_media(fileId=file_id)
+                                resume_bytes = request.execute()
+                                
+                                # Save to the same path as before (overwrite)
+                                if candidate.resume_path:
+                                    resume_path = Path(candidate.resume_path)
+                                    resume_path.parent.mkdir(parents=True, exist_ok=True)
+                                    with open(resume_path, 'wb') as f:
+                                        f.write(resume_bytes)
+                                    downloaded_count += 1
+                                    _log.info(f"Re-downloaded resume for {candidate.name} to {resume_path}")
+                        except Exception as e:
+                            _log.warning(f"Failed to re-download resume for {candidate.email}: {e}")
+                    break
     
-    # Save current counters
-    saved_total_processed = w.total_processed
-    saved_existing = w.existing_responses
-    
-    # Reset to beginning to reprocess all rows
-    w.last_row = 1
-    
-    # Download all resumes
-    await w._poll_once()
-    
-    # Restore counters (don't double-count the re-downloaded ones)
-    w.total_processed = saved_total_processed
-    
-    return {"ok": True, "processed": candidate_count, "total_processed": saved_total_processed}
+    return {"ok": True, "processed": downloaded_count, "message": f"Re-downloaded {downloaded_count} resume files"}
 
 
 # Max times we reschedule when candidate declines (then stop and leave last invite pending)
@@ -845,6 +875,109 @@ async def check_interview_responses():
         })
         _log.info("Rescheduled interview for %s (declined by: %s) -> %s", email, declined_who, new_result.get("start"))
     return {"checked": checked, "rescheduled": rescheduled, "details": details}
+
+
+@router.post("/reset-watcher/{job_id}")
+async def reset_watcher(job_id: str):
+    """Reset the watcher to re-process all responses from the beginning."""
+    w = watcher_registry.get(job_id)
+    if not w:
+        raise HTTPException(404, "No watcher for this job")
+    
+    # Reset to beginning
+    w.last_row = 1
+    w.total_processed = 0
+    w.existing_responses = 0
+    
+    _log.info(f"Watcher reset for job {job_id} - will re-process from beginning")
+    
+    # Trigger immediate poll
+    await w._poll_once()
+    
+    return {
+        "ok": True, 
+        "message": f"Watcher reset and processed {w.total_processed} responses",
+        "total_processed": w.total_processed
+    }
+
+
+@router.post("/schedule-interview/{candidate_id}")
+async def schedule_interview_for_candidate(candidate_id: int, db: Session = Depends(get_db)):
+    """Manually schedule an interview for a candidate who doesn't have one or had it cancelled."""
+    # Get candidate from database
+    candidate = db.query(models.Candidate).filter(models.Candidate.id == candidate_id).first()
+    
+    if not candidate:
+        raise HTTPException(404, "Candidate not found")
+    
+    # Get job config
+    config = job_config.get(candidate.job_id, {})
+    calendar_id = config.get("calendar_id") or "primary"
+    meeting_mins = config.get("meeting_duration_minutes", 30)
+    
+    try:
+        from form_watcher import get_google_creds
+        from calendar_scheduler import schedule_interview
+        from datetime import datetime, timedelta
+        
+        creds = get_google_creds()
+        schedule_result = schedule_interview(
+            creds,
+            calendar_id=calendar_id,
+            candidate_name=candidate.name,
+            candidate_email=candidate.email,
+            job_id=candidate.job_id,
+            duration_minutes=meeting_mins,
+            interviewer_email=config.get("interviewer_email"),
+        )
+        
+        if schedule_result.get("ok"):
+            # Create or update interview record
+            calendar_event_id = schedule_result.get("event_id")
+            scheduled_time = schedule_result.get("start")
+            
+            if scheduled_time:
+                scheduled_dt = datetime.fromisoformat(scheduled_time.replace('Z', '+00:00'))
+                scheduled_end_dt = scheduled_dt + timedelta(minutes=meeting_mins)
+                
+                # Check if interview already exists
+                existing_interview = db.query(models.Interview).filter(
+                    models.Interview.candidate_id == candidate_id
+                ).first()
+                
+                if existing_interview:
+                    # Update existing
+                    existing_interview.calendar_event_id = calendar_event_id
+                    existing_interview.scheduled_start = scheduled_dt
+                    existing_interview.scheduled_end = scheduled_end_dt
+                    existing_interview.status = "scheduled"
+                else:
+                    # Create new
+                    interview = models.Interview(
+                        candidate_id=candidate_id,
+                        calendar_event_id=calendar_event_id,
+                        scheduled_start=scheduled_dt,
+                        scheduled_end=scheduled_end_dt,
+                        status="scheduled"
+                    )
+                    db.add(interview)
+                
+                db.commit()
+                
+                return {
+                    "ok": True,
+                    "message": f"Interview scheduled for {candidate.name}",
+                    "event_link": schedule_result.get("event_link"),
+                    "meet_link": schedule_result.get("meet_link"),
+                    "start": scheduled_time,
+                    "end": schedule_result.get("end")
+                }
+        
+        raise HTTPException(500, f"Failed to schedule interview: {schedule_result.get('error', 'Unknown error')}")
+        
+    except Exception as e:
+        _log.error(f"Failed to schedule interview for candidate {candidate_id}: {e}")
+        raise HTTPException(500, f"Failed to schedule interview: {str(e)}")
 
 
 @router.get("/jobs/{job_id}/download-all-resumes")
