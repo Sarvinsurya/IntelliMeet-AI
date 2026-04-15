@@ -6,10 +6,14 @@ When a new response arrives, resume is auto-downloaded from the form and saved.
 """
 import logging
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from form_watcher import watcher_registry
+from database import get_db
+import crud
+from datetime import datetime
 
 _log = logging.getLogger(__name__)
 
@@ -93,12 +97,26 @@ def _sanitize_resume_filename(name: str) -> str:
 async def on_new_response(response, resume_bytes, resume_filename, job_id):
     """
     Fires for every form response. Saves resume, then parses it and scores against threshold.
+    Now also saves candidate and interview to database.
     """
     import json
     import uuid
+    from database import SessionLocal
+    import crud
 
     name = response.get("name") or response.get("email") or "candidate"
     row = response.get("row_number", "")
+    email = response.get("email", "")
+
+    # Check if this candidate was already processed (prevent duplicates)
+    db = SessionLocal()
+    try:
+        existing_candidate = crud.get_candidate_by_email(db, job_id, email) if email else None
+        if existing_candidate:
+            _log.info(f"SKIP: Candidate {name} ({email}) already processed for job {job_id}")
+            return
+    finally:
+        db.close()
 
     sheet_filename = _sanitize_resume_filename(response.get("resume_filename_from_sheet") or "")
     file_to_save = sheet_filename or resume_filename
@@ -186,6 +204,9 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
                 calendar_id = config.get("calendar_id") or "primary"
                 meeting_mins = config.get("meeting_duration_minutes", 30)
                 candidate_email = (response.get("email") or "").strip()
+                calendar_event_id = None
+                scheduled_time = None
+                
                 try:
                     from form_watcher import get_google_creds
                     from calendar_scheduler import schedule_interview
@@ -199,6 +220,8 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
                     save_obj["scheduled_event"] = schedule_result
                     if schedule_result.get("ok"):
                         save_obj["reschedule_count"] = 0
+                        calendar_event_id = schedule_result.get("event_id")
+                        scheduled_time = schedule_result.get("start")
                     if schedule_result.get("ok") and schedule_result.get("event_link"):
                         print(f"  In HR calendar: {schedule_result['event_link']}")
                         if schedule_result.get("meet_link"):
@@ -211,9 +234,94 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
                 except Exception as cal_e:
                     _log.warning("Calendar schedule failed: %s", cal_e)
                     save_obj["scheduled_event"] = {"ok": False, "error": str(cal_e)}
+                
+                # Save candidate and interview to database
+                db = SessionLocal()
+                try:
+                    from datetime import datetime
+                    
+                    # Create candidate record
+                    candidate = crud.create_candidate(
+                        db=db,
+                        job_id=job_id,
+                        name=name,
+                        email=email,
+                        phone=response.get("phone", ""),
+                        resume_path=str(saved_path) if saved_path else None,
+                        score=scr.get("score"),
+                        resume_text=parsed.get("text", "") if parsed else None,
+                        score_reason=scr.get("reasoning", ""),
+                    )
+                    _log.info(f"✅ Candidate saved to DB: {name} (ID: {candidate.id})")
+                    
+                    # Create interview record if scheduled
+                    if calendar_event_id and scheduled_time:
+                        try:
+                            scheduled_dt = datetime.fromisoformat(scheduled_time.replace('Z', '+00:00'))
+                            # Calculate end time (add meeting duration)
+                            from datetime import timedelta
+                            scheduled_end_dt = scheduled_dt + timedelta(minutes=meeting_mins)
+                        except:
+                            scheduled_dt = datetime.utcnow()
+                            from datetime import timedelta
+                            scheduled_end_dt = scheduled_dt + timedelta(minutes=meeting_mins)
+                        
+                        interview = crud.create_interview(
+                            db=db,
+                            candidate_id=candidate.id,
+                            calendar_event_id=calendar_event_id,
+                            scheduled_start=scheduled_dt,
+                            scheduled_end=scheduled_end_dt,
+                            status="scheduled",
+                        )
+                        _log.info(f"✅ Interview saved to DB: {name} at {scheduled_time}")
+                    
+                    # Log activity
+                    crud.create_activity_log(
+                        db=db,
+                        action="candidate_processed",
+                        description=f"Processed {name} - Score: {scr.get('score')}",
+                        job_id=job_id,
+                        candidate_id=candidate.id,
+                    )
+                except Exception as db_e:
+                    _log.error(f"Failed to save candidate/interview to DB: {db_e}")
+                finally:
+                    db.close()
 
             with open(result_path, "w", encoding="utf-8") as f:
                 json.dump(save_obj, f, indent=2, ensure_ascii=False)
+            
+            # Save candidate to database (even if below threshold or no interview scheduled)
+            if not response.get("above_threshold"):
+                db = SessionLocal()
+                try:
+                    # Create candidate record
+                    candidate = crud.create_candidate(
+                        db=db,
+                        job_id=job_id,
+                        name=name,
+                        email=email,
+                        phone=response.get("phone", ""),
+                        resume_path=str(saved_path) if saved_path else None,
+                        score=scr.get("score"),
+                        resume_text=parsed.get("text", "") if parsed else None,
+                        score_reason=scr.get("reasoning", ""),
+                    )
+                    _log.info(f"✅ Candidate saved to DB (below threshold): {name} (ID: {candidate.id})")
+                    
+                    # Log activity
+                    crud.create_activity_log(
+                        db=db,
+                        action="candidate_processed",
+                        description=f"Processed {name} - Score: {scr.get('score')} (below threshold)",
+                        job_id=job_id,
+                        candidate_id=candidate.id,
+                    )
+                except Exception as db_e:
+                    _log.error(f"Failed to save candidate to DB: {db_e}")
+                finally:
+                    db.close()
 
             # Show parse + score in terminal
             scr = response["resume_score"]
@@ -255,12 +363,13 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
 
 
 @router.post("/watch")
-async def start_watching(body: WatchRequest):
+async def start_watching(body: WatchRequest, db: Session = Depends(get_db)):
     """
     HR pastes Google Form link here. Optionally set job_keywords and score_threshold
     to parse resumes and score them (candidate must score >= threshold).
     """
     try:
+        # Save job config
         job_config[body.job_id] = {
             "job_description": (body.job_description or "").strip(),
             "keywords": list(body.job_keywords) if body.job_keywords else [],
@@ -269,6 +378,8 @@ async def start_watching(body: WatchRequest):
             "meeting_duration_minutes": getattr(body, "meeting_duration_minutes", None) or 30,
             "interviewer_email": (getattr(body, "interviewer_email", None) or "").strip() or None,
         }
+        
+        # Start watching the form
         info = await watcher_registry.add(
             form_url=body.form_url,
             job_id=body.job_id,
@@ -276,6 +387,70 @@ async def start_watching(body: WatchRequest):
             poll_every=body.poll_every,
             download_existing=body.download_existing,
         )
+        
+        # Create or update job in database
+        existing_job = crud.get_job(db, body.job_id)
+        if not existing_job:
+            # If job doesn't exist, create it (shouldn't happen as frontend creates job first)
+            job_db = crud.create_job(
+                db=db,
+                job_id=body.job_id,
+                title=info.get('form_title', body.job_id),
+                description=body.job_description,
+            )
+            crud.create_activity_log(
+                db=db,
+                action="job_created",
+                description=f"Job created: {job_db.title}",
+                job_id=body.job_id
+            )
+        else:
+            # Update job but KEEP the original title (don't overwrite with form title)
+            crud.update_job(
+                db=db,
+                job_id=body.job_id,
+                # title stays the same - we keep user's original job title
+                description=body.job_description,
+                form_url=body.form_url,
+                sheet_id=info.get('sheet_id'),
+            )
+        
+        # Create or update form watcher record in database
+        existing_watcher = crud.get_form_watcher(db, body.job_id)
+        if not existing_watcher:
+            crud.create_form_watcher(
+                db=db,
+                job_id=body.job_id,
+                form_id=info.get('form_id', ''),
+                sheet_id=info.get('sheet_id', ''),
+                form_title=info.get('form_title', ''),
+                field_mapping=info.get('fields', {}),
+                is_active=True,  # Mark as active when creating
+            )
+            crud.create_activity_log(
+                db=db,
+                action="form_connected",
+                description=f"Connected Google Form: {info.get('form_title')}",
+                job_id=body.job_id
+            )
+        else:
+            # Update existing watcher to active
+            crud.update_form_watcher(
+                db=db,
+                job_id=body.job_id,
+                is_active=True,
+                form_title=info.get('form_title', existing_watcher.form_title),
+                field_mapping=info.get('fields', existing_watcher.field_mapping),
+            )
+            crud.create_activity_log(
+                db=db,
+                action="form_reconnected",
+                description=f"Reconnected Google Form: {info.get('form_title')}",
+                job_id=body.job_id
+            )
+        
+        _log.info("✅ Job saved to database: %s", body.job_id)
+        
         return {
             "status":  "watching",
             "message": f"Now watching '{info['form_title']}' for new responses",
@@ -292,6 +467,83 @@ async def start_watching(body: WatchRequest):
         raise HTTPException(500, f"Setup failed: {e}")
 
 
+class CreateJobRequest(BaseModel):
+    job_id: str
+    title: str
+    description: str = ""
+
+
+@router.post("/jobs")
+async def create_job_endpoint(req: CreateJobRequest, db: Session = Depends(get_db)):
+    """Create a new job in the database"""
+    try:
+        # Check if job already exists
+        existing = crud.get_job(db, req.job_id)
+        if existing:
+            return {"ok": True, "job_id": req.job_id, "message": "Job already exists"}
+        
+        # Create the job
+        job = crud.create_job(db, req.job_id, req.title, req.description)
+        crud.create_activity_log(
+            db=db,
+            action="job_created",
+            description=f"Job created: {req.title}",
+            job_id=req.job_id
+        )
+        
+        _log.info(f"✅ Job created: {req.title} ({req.job_id})")
+        
+        return {
+            "ok": True,
+            "job_id": req.job_id,
+            "title": req.title,
+            "message": "Job created successfully"
+        }
+    except Exception as e:
+        _log.error(f"Failed to create job: {e}")
+        raise HTTPException(500, f"Failed to create job: {e}")
+
+
+@router.get("/jobs")
+async def get_all_jobs(db: Session = Depends(get_db)):
+    """
+    Get all jobs from database with their current status
+    """
+    jobs_db = crud.get_all_jobs(db)
+    
+    result = []
+    for job_db in jobs_db:
+        watcher = crud.get_form_watcher(db, job_db.id)
+        stats = crud.get_job_statistics(db, job_db.id)
+        
+        # Get watcher info from registry if active (convert to dict to avoid serialization issues)
+        watcher_info = None
+        if job_db.id in watcher_registry._watchers:
+            watcher_obj = watcher_registry._watchers[job_db.id]
+            watcher_info = watcher_obj.status() if hasattr(watcher_obj, 'status') else None
+        
+        result.append({
+            "job_id": job_db.id,
+            "title": job_db.title,
+            "description": job_db.description,
+            "form_url": job_db.form_url,
+            "status": job_db.status,
+            "created_at": job_db.created_at.isoformat() if job_db.created_at else None,
+            "is_watching": watcher.is_active if watcher else False,
+            "form_title": watcher.form_title if watcher else None,
+            "last_checked": watcher.last_checked.isoformat() if watcher and watcher.last_checked else None,
+            "total_responses": watcher.total_responses if watcher else 0,
+            "stats": stats,
+            "watcher_info": watcher_info,
+        })
+    
+    return {
+        "ok": True,
+        "total": len(result),
+        "jobs": result
+    }
+
+
 @router.get("/watchers")
 async def list_watchers():
     statuses = watcher_registry.all_status()
@@ -305,12 +557,58 @@ async def list_watchers():
 
 
 @router.delete("/watch/{job_id}")
-async def stop_watching(job_id: str):
-    if not watcher_registry.get(job_id):
-        raise HTTPException(404, "No watcher for this job")
-    await watcher_registry.remove(job_id)
+async def stop_watching(job_id: str, db: Session = Depends(get_db)):
+    """Stop watching a form and optionally delete the job from database"""
+    # Stop the watcher if it's running
+    if watcher_registry.get(job_id):
+        await watcher_registry.remove(job_id)
+    
+    # Remove from in-memory job config
     job_config.pop(job_id, None)
-    return {"stopped": True}
+    
+    # Deactivate the form watcher in database (don't delete, just mark inactive)
+    watcher = crud.get_form_watcher(db, job_id)
+    if watcher:
+        crud.deactivate_form_watcher(db, job_id)
+    
+    # Optionally delete the job entirely from database
+    # For now, we'll just stop watching but keep the job record
+    # If you want to delete: crud.delete_job(db, job_id)
+    
+    crud.create_activity_log(
+        db=db,
+        action="watcher_stopped",
+        description=f"Stopped watching job {job_id}",
+        job_id=job_id
+    )
+    
+    return {"stopped": True, "job_id": job_id}
+
+
+@router.delete("/jobs/{job_id}")
+async def delete_job_endpoint(job_id: str, db: Session = Depends(get_db)):
+    """Completely delete a job and all its data from the database"""
+    # Stop the watcher if it's running
+    if watcher_registry.get(job_id):
+        await watcher_registry.remove(job_id)
+    
+    # Remove from in-memory job config
+    job_config.pop(job_id, None)
+    
+    # Delete from database (this will cascade delete watcher, candidates, interviews, etc.)
+    deleted = crud.delete_job(db, job_id)
+    
+    if not deleted:
+        raise HTTPException(404, f"Job {job_id} not found")
+    
+    crud.create_activity_log(
+        db=db,
+        action="job_deleted",
+        description=f"Deleted job {job_id}",
+        job_id=None  # Job is deleted, so no job_id reference
+    )
+    
+    return {"deleted": True, "job_id": job_id}
 
 
 @router.get("/job-config/{job_id}")

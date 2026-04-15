@@ -39,3 +39,9 @@ frontend/build/
 backend/resumes/
 *.pdf
 *.docx
+
+# Database
+backend/intellimeet.db
+backend/intellimeet.db-journal
+backend/*.db
+backend/*.db-journal

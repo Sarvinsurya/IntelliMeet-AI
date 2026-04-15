@@ -22,6 +22,8 @@ WORK_END_MINUTE = 30  # 7:30 PM
 # Latest meeting start time (must end before WORK_END)
 LATEST_MEETING_START_HOUR = 18  # 6 PM
 LATEST_MEETING_START_MINUTE = 30  # 6:30 PM
+# Buffer time between meetings (in minutes)
+MEETING_BUFFER_MINUTES = 5  # 5-minute gap between meetings
 
 
 def _parse_rfc3339(s: str) -> datetime:
@@ -154,23 +156,26 @@ def get_free_slots(creds, calendar_id: str = "primary", days_ahead: int = DEFAUL
             merged.append((s, e))
 
     # Free slots = gaps between merged busy, and before first / after last
+    # Add MEETING_BUFFER_MINUTES after each busy period
     free_slots = []
     delta = timedelta(minutes=duration_minutes)
+    buffer = timedelta(minutes=MEETING_BUFFER_MINUTES)
+    
     # Before first busy
     if merged:
         gap_start = now
         gap_end = merged[0][0]
         if (gap_end - gap_start) >= delta:
             free_slots.append((gap_start, gap_end))
-    # Between busy intervals
+    # Between busy intervals (add 5-minute buffer after each busy period)
     for i in range(len(merged) - 1):
-        gap_start = merged[i][1]
+        gap_start = merged[i][1] + buffer  # Add 5-minute buffer after meeting ends
         gap_end = merged[i + 1][0]
         if (gap_end - gap_start) >= delta:
             free_slots.append((gap_start, gap_end))
-    # After last busy
+    # After last busy (add 5-minute buffer)
     if merged:
-        gap_start = merged[-1][1]
+        gap_start = merged[-1][1] + buffer  # Add 5-minute buffer after last meeting
         gap_end = time_max
         if (gap_end - gap_start) >= delta:
             free_slots.append((gap_start, gap_end))

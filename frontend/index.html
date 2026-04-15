@@ -1,16 +1,1699 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Google Form Auto-Watcher — HR tool to automatically track form responses and download resumes." />
-    <title>Form Auto-Watcher</title>
+    <meta name="description"
+        content="IntelliMeet AI — AI-powered HR automation for resume scoring and interview scheduling." />
+    <title>IntelliMeet AI — Smart HR Automation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #ffffff;
+            --bg-card: #f8fafc;
+            --bg-input: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text2: #64748b;
+            --text3: #94a3b8;
+            --accent: #4f46e5;
+            --accent-soft: #eef2ff;
+            --accent-text: #4f46e5;
+            --green: #10b981;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-lg: rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #0f1623;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --accent: #6366f1;
+            --accent-soft: rgba(99, 102, 241, 0.15);
+            --accent-text: #a5b4fc;
+            --green: #34d399;
+            --red: #f87171;
+            --yellow: #fbbf24;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-lg: rgba(0, 0, 0, 0.5);
+        }
+
+        html,
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: 'liga', 'kern';
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+        }
+
+        /* animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .spin {
+            animation: spin 0.8s linear infinite;
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* layout */
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+            width: 100%;
+        }
+
+        /* header */
+        .header {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* Navigation */
+        .nav-menu {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            color: var(--text2);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .nav-btn:hover {
+            color: var(--text);
+            background: var(--bg-input);
+        }
+
+        .nav-btn.active {
+            color: white;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .logo-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text2);
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-btn {
+            width: 56px;
+            height: 28px;
+            background: var(--border);
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: none;
+            padding: 0;
+        }
+
+        .toggle-btn:hover {
+            background: var(--text3);
+        }
+
+        .toggle-slider {
+            width: 22px;
+            height: 22px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        [data-theme="dark"] .toggle-slider {
+            transform: translateX(28px);
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: var(--text2);
+            font-weight: 500;
+        }
+
+        /* hero */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 60px;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h2 {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+
+        .hero p {
+            font-size: 17px;
+            color: var(--text2);
+            line-height: 1.7;
+            max-width: 750px;
+            margin: 0 auto 48px;
+            height: auto;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            font-weight: 450;
+            letter-spacing: -0.01em;
+        }
+
+        .steps-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .step-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 24px;
+            min-width: 200px;
+            flex: 1;
+            max-width: 260px;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .step-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow-lg);
+            border-color: var(--accent);
+        }
+
+        .step-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .step-text {
+            font-size: 14px;
+            color: var(--text2);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .step-arrow {
+            color: var(--text3);
+            font-size: 24px;
+            margin-top: 28px;
+        }
+
+        .cta-btn {
+            padding: 14px 32px;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px var(--shadow-lg);
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow-lg);
+            background: #4338ca;
+        }
+
+        .cta-btn:active {
+            transform: translateY(0);
+        }
+
+        /* add job bar */
+        .add-section {
+            padding: 24px 0 8px;
+            width: 100%;
+        }
+
+        .add-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .add-input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s;
+            min-height: 48px;
+            resize: none;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        .add-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .add-btn {
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            transition: all 0.2s;
+            white-space: nowrap;
+            background: rgba(99, 102, 241, 0.2);
+            color: rgba(165, 168, 255, 0.9);
+        }
+
+        .add-btn:disabled {
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+        }
+
+        /* job cards */
+        .jobs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            padding: 20px 0 40px;
+            flex: 1;
+        }
+
+        .job-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .job-card:hover {
+            box-shadow: 0 8px 24px var(--shadow-lg);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 24px;
+            background: var(--bg-input);
+            border-radius: 16px;
+            border: 2px solid var(--border);
+        }
+
+        .job-title-section {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .job-title {
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            line-height: 1.3;
+            word-wrap: break-word;
+            letter-spacing: -0.02em;
+        }
+
+        .job-meta {
+            font-size: 12px;
+            color: var(--text3);
+            font-family: 'JetBrains Mono', monospace;
+            display: block;
+        }
+
+        .remove-btn {
+            background: var(--red);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        /* form watcher card */
+        .fw-card {
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .fw-label {
+            font-size: 13px;
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: block;
+            letter-spacing: -0.01em;
+        }
+
+        .fw-row {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .fw-input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .fw-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .fw-input::placeholder {
+            color: var(--text3);
+        }
+
+        .fw-textarea {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.7;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 450;
+            resize: vertical;
+            transition: all 0.2s;
+        }
+
+        .fw-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .fw-textarea::placeholder {
+            color: var(--text3);
+        }
+
+        .fw-btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            white-space: nowrap;
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .fw-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--shadow-lg);
+            background: #4338ca;
+        }
+
+        .fw-btn:disabled {
+            background: var(--text3);
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .fw-hint {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text3);
+            line-height: 1.5;
+            padding: 12px;
+            background: var(--accent-soft);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .fw-hint strong {
+            color: var(--accent-text);
+            font-weight: 600;
+        }
+
+        .fw-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text2);
+            cursor: pointer;
+            padding: 12px;
+            background: rgba(99, 102, 241, 0.05);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .fw-checkbox:hover {
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .fw-checkbox input {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .fw-err {
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            border-left: 4px solid #ef4444;
+            color: #fca5a5;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .fw-loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 13px;
+            padding: 8px 0;
+        }
+
+        .fw-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .fw-watch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .live-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            display: inline-block;
+            box-shadow: 0 0 6px #34d399;
+        }
+
+        .live-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.65);
+            font-weight: 500;
+        }
+
+        .fw-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .small-btn {
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .small-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .small-btn-red {
+            padding: 4px 10px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 6px;
+            color: rgba(252, 165, 165, 0.7);
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .small-btn-red:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .info-grid {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            padding: 4px 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.25);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .info-val {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .info-val.bold {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .info-val.accent {
+            color: #34d399;
+        }
+
+        .info-val a {
+            color: #818cf8;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .info-val a:hover {
+            text-decoration: underline;
+        }
+
+        .col-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            padding: 3px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tag.accent {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: rgba(165, 168, 255, 0.8);
+        }
+
+        .fw-warn {
+            margin-top: 8px;
+            font-size: 11px;
+            color: rgba(251, 191, 36, 0.7);
+            padding: 6px 10px;
+            background: rgba(251, 191, 36, 0.05);
+            border: 1px solid rgba(251, 191, 36, 0.12);
+            border-radius: 6px;
+        }
+
+        /* responses log */
+        .responses-section {
+            margin-top: 16px;
+        }
+
+        .responses-title {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .response-item {
+            background: rgba(52, 211, 153, 0.04);
+            border: 1px solid rgba(52, 211, 153, 0.1);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+        }
+
+        .response-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .response-detail {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 2px;
+        }
+
+        .response-resume {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #34d399;
+            margin-top: 4px;
+        }
+
+        /* footer */
+        /* Page content */
+        .page-content {
+            flex: 1;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text2);
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+
+        .footer {
+            padding: 20px 0 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-text {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.12);
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page" id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo-row">
+                    <h1 class="logo-text" style="cursor: pointer;" id="logo-link">IntelliMeet AI</h1>
+                </div>
+                <p class="subtitle">AI-powered HR automation for smart hiring</p>
+            </div>
+            <div class="header-actions">
+                <nav class="nav-menu">
+                    <button class="nav-btn active" id="nav-home">Home</button>
+                    <button class="nav-btn" id="nav-jobs">Jobs</button>
+                </nav>
+                <div class="theme-toggle">
+                    <span class="toggle-label">Theme</span>
+                    <button class="toggle-btn" id="theme-toggle-btn" aria-label="Toggle theme">
+                        <div class="toggle-slider">
+                            <span id="theme-icon">☀️</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- HOME PAGE -->
+        <div id="home-page" class="page-content">
+            <div class="hero slide-up">
+                <h2>Intelligent Hiring Automation</h2>
+                <p>Connect your Google Forms and let AI handle the rest. Automatically screen resumes, score candidates, and schedule interviews with qualified applicants.</p>
+                <div class="steps-row">
+                    <div class="step-card">
+                        <div class="step-num">1</div>
+                        <p class="step-text">Create a job & paste your Google Form link</p>
+                    </div>
+                    <div class="step-arrow">→</div>
+                    <div class="step-card">
+                        <div class="step-num">2</div>
+                        <p class="step-text">System connects to the linked response sheet</p>
+                    </div>
+                    <div class="step-arrow">→</div>
+                    <div class="step-card">
+                        <div class="step-num">3</div>
+                        <p class="step-text">Resumes are auto-downloaded on every submission</p>
+                    </div>
+                </div>
+                <button class="cta-btn" id="add-first-job-btn">+ Add Your First Job</button>
+            </div>
+        </div>
+
+        <!-- JOBS PAGE -->
+        <div id="jobs-page" class="page-content" style="display:none;">
+            <!-- Add job bar -->
+            <div id="add-section" class="add-section">
+                <div class="add-row">
+                    <textarea id="job-title-input" class="add-input"
+                        placeholder="Job title (e.g. Senior Developer, Marketing Intern)"
+                        rows="1"></textarea>
+                    <button class="add-btn" id="add-job-btn">+ Add Job</button>
+                </div>
+            </div>
+
+            <!-- Jobs list -->
+            <div id="jobs-list" class="jobs-list"></div>
+            
+            <!-- Empty state for jobs page -->
+            <div id="jobs-empty-state" class="empty-state" style="display:none;">
+                <h3>No Jobs Yet</h3>
+                <p>Create your first job to start automating your hiring process</p>
+                <button class="cta-btn" id="create-job-btn">+ Create Job</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span class="footer-text">Data Wrangling Project — Semester 8</span>
+            <div style="margin-top:8px;font-size:12px;">
+                <a href="/docs" target="_blank" rel="noreferrer" style="color:rgba(129,140,248,0.9);text-decoration:none;">API docs (Swagger)</a>
+                &nbsp;·&nbsp;
+                <a href="/api/forms" target="_blank" rel="noreferrer" style="color:rgba(129,140,248,0.9);text-decoration:none;">Forms API</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const API = window.location.origin + "/api";
+        const jobs = {};       // { jobId: { title, createdAt, phase, info, errMsg, url, intervalId } }
+        const responses = {};  // { jobId: [ {name, email, ...}, ... ] }
+        
+        // Helper function to convert UTC timestamp to IST
+        function utcToIST(utcTimestamp) {
+            if (!utcTimestamp) return null;
+            // Parse as UTC by appending 'Z' if not present
+            let dateStr = utcTimestamp;
+            if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                dateStr = dateStr + 'Z';  // Force UTC interpretation
+            }
+            const date = new Date(dateStr);
+            return date.toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+        }
+        
+        // Helper function to convert UTC time to IST time only
+        function utcToISTTime(utcTimestamp) {
+            if (!utcTimestamp) return null;
+            // Parse as UTC by appending 'Z' if not present
+            let dateStr = utcTimestamp;
+            if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                dateStr = dateStr + 'Z';  // Force UTC interpretation
+            }
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+        }
+
+        // Current page state (defined early for HTML onclick handlers)
+        let currentPage = 'home';
+
+        // ========== THEME MANAGEMENT ==========
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        // ========== PAGE NAVIGATION ==========
+        function showPage(page) {
+            currentPage = page;
+            
+            const homeBtn = document.getElementById('nav-home');
+            const jobsBtn = document.getElementById('nav-jobs');
+            const homePage = document.getElementById('home-page');
+            const jobsPage = document.getElementById('jobs-page');
+            
+            // Safety check
+            if (!homeBtn || !jobsBtn || !homePage || !jobsPage) {
+                console.error('Navigation elements not found');
+                return;
+            }
+            
+            // Update navigation
+            homeBtn.classList.remove('active');
+            jobsBtn.classList.remove('active');
+            document.getElementById('nav-' + page).classList.add('active');
+            
+            // Show/hide pages
+            if (page === 'home') {
+                homePage.style.display = 'block';
+                jobsPage.style.display = 'none';
+            } else {
+                homePage.style.display = 'none';
+                jobsPage.style.display = 'block';
+                renderJobs(); // Refresh jobs when showing jobs page
+            }
+        }
+
+        // ========== EVENT LISTENERS SETUP ==========
+        function setupEventListeners() {
+            // Navigation buttons
+            const homeBtn = document.getElementById('nav-home');
+            const jobsBtn = document.getElementById('nav-jobs');
+            const logoLink = document.getElementById('logo-link');
+            const themeBtn = document.getElementById('theme-toggle-btn');
+            const addFirstJobBtn = document.getElementById('add-first-job-btn');
+            const createJobBtn = document.getElementById('create-job-btn');
+            const addJobBtn = document.getElementById('add-job-btn');
+            const jobTitleInput = document.getElementById('job-title-input');
+            
+            // Navigation
+            if (homeBtn) {
+                homeBtn.addEventListener('click', () => showPage('home'));
+                console.log('Home button listener attached');
+            }
+            if (jobsBtn) {
+                jobsBtn.addEventListener('click', () => showPage('jobs'));
+                console.log('Jobs button listener attached');
+            }
+            if (logoLink) {
+                logoLink.addEventListener('click', () => showPage('home'));
+            }
+            
+            // Theme toggle
+            if (themeBtn) {
+                themeBtn.addEventListener('click', toggleTheme);
+                console.log('Theme button listener attached');
+            }
+            
+            // Job creation buttons
+            if (addFirstJobBtn) {
+                addFirstJobBtn.addEventListener('click', () => showPage('jobs'));
+                console.log('Add first job button listener attached');
+            }
+            if (createJobBtn) {
+                createJobBtn.addEventListener('click', () => {
+                    const input = document.getElementById('job-title-input');
+                    if (input) input.focus();
+                });
+            }
+            if (addJobBtn) {
+                addJobBtn.addEventListener('click', addJob);
+                console.log('Add job button listener attached');
+            }
+            
+            // Job title input - auto-grow and Enter key
+            if (jobTitleInput) {
+                jobTitleInput.addEventListener('input', function() {
+                    autoGrowTextarea(this);
+                });
+                jobTitleInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        addJob();
+                    }
+                });
+                console.log('Job title input listeners attached');
+            }
+        }
+
+        // Initialize app when DOM is ready
+        async function initializeApp() {
+            try {
+                // Initialize theme
+                initTheme();
+                
+                // Setup all event listeners
+                setupEventListeners();
+                
+                // IMPORTANT: Clear localStorage on startup to ensure we always load fresh from database
+                // This prevents stale data from being shown
+                try {
+                    localStorage.removeItem('intellimeet_jobs');
+                    console.log('Cleared localStorage - will load from database');
+                } catch (e) {
+                    console.warn('Could not clear localStorage:', e);
+                }
+                
+                // Check if API is reachable
+                const healthCheck = await fetch(API + "/forms");
+                if (!healthCheck.ok) {
+                    showApiBanner();
+                    showPage('home');
+                    return;
+                }
+                
+                // Load existing jobs from backend (this is the source of truth)
+                await loadExistingJobs();
+                
+                // Start on jobs page if we have jobs, otherwise home
+                showPage(Object.keys(jobs).length > 0 ? 'jobs' : 'home');
+                
+            } catch (error) {
+                console.error("Failed to initialize app:", error);
+                showApiBanner();
+                showPage('home');
+            }
+        }
+
+        // Run initialization when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+        
+        // Load existing jobs from /api/forms/jobs
+        async function loadExistingJobs() {
+            try {
+                const response = await fetch(API + "/forms/jobs");
+                const data = await response.json();
+                
+                if (data && data.ok && data.jobs) {
+                    console.log("Fetched jobs from database:", data);
+                    
+                    // Clear existing jobs (don't reassign const)
+                    for (const key in jobs) {
+                        delete jobs[key];
+                    }
+                    for (const key in responses) {
+                        delete responses[key];
+                    }
+                    
+                    // Populate jobs object with database data
+                    for (const jobData of data.jobs) {
+                        const id = jobData.job_id;
+                        
+                        // Check if watcher is actually running (not just marked as active in DB)
+                        const isActuallyWatching = jobData.watcher_info !== null && jobData.watcher_info !== undefined;
+                        
+                        jobs[id] = {
+                            title: jobData.title,
+                            createdAt: jobData.created_at ? utcToIST(jobData.created_at) : new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+                            phase: isActuallyWatching ? "watching" : "idle",
+                            info: jobData.watcher_info,
+                            errMsg: "",
+                            url: jobData.form_url || "",
+                            jobDescription: jobData.description || "",
+                            intervalId: null,
+                            downloadExisting: false,
+                            lastChecked: jobData.last_checked,
+                        };
+                        responses[id] = [];
+                        
+                        // If actually watching (watcher is running), start polling for status every 5 seconds
+                        if (isActuallyWatching) {
+                            jobs[id].intervalId = setInterval(() => refreshStatus(id), 5000);
+                        }
+                    }
+                    
+                    // Save to localStorage for next quick load
+                    saveJobsToLocalStorage();
+                    console.log(`Loaded ${Object.keys(jobs).length} jobs from database`);
+                    renderJobs();
+                }
+            } catch (error) {
+                console.error("Failed to load existing jobs:", error);
+            }
+        }
+        function showApiBanner() {
+            const el = document.createElement("div");
+            el.id = "api-banner";
+            el.style.cssText = "position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;padding:10px 20px;text-align:center;z-index:9999;font-size:14px;";
+            el.innerHTML = "Forms API not reachable. Start the backend (run <b>./run_backend.sh</b>) and refresh the page.";
+            document.body.prepend(el);
+        }
+
+        function autoGrowTextarea(element) {
+            element.style.height = '48px'; // Reset to minimum height
+            element.style.height = element.scrollHeight + 'px'; // Grow to content
+        }
+
+        // Save job description (called on blur, not on every keystroke)
+        function saveJobDescription(jobId) {
+            const job = jobs[jobId];
+            if (job) {
+                console.log(`Saved job description for ${jobId}`);
+                // Job description is already updated in jobs[jobId].jobDescription
+                // It will be sent when connecting the form
+            }
+        }
+
+        async function addJob() {
+            const input = document.getElementById("job-title-input");
+            if (!input) {
+                console.error("Job title input not found");
+                return;
+            }
+            
+            const title = input.value.trim();
+            if (!title) {
+                alert("Please enter a job title");
+                return;
+            }
+
+            const id = "job_" + Date.now();
+            
+            // Create job in database first
+            try {
+                const response = await fetch(`${API}/forms/jobs`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        job_id: id,
+                        title: title,
+                        description: ""
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to create job in database: ${response.statusText}`);
+                }
+                
+                console.log(`✅ Job created in database: ${title} (${id})`);
+            } catch (error) {
+                console.error("Error creating job in database:", error);
+                alert("Failed to create job. Please try again.");
+                return;
+            }
+            
+            // Store in local jobs object
+            jobs[id] = {
+                title,
+                createdAt: new Date().toLocaleString('en-IN', { 
+                    timeZone: 'Asia/Kolkata',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                }),
+                phase: "idle",
+                info: null,
+                errMsg: "",
+                url: "",
+                jobDescription: "",
+                intervalId: null,
+                downloadExisting: false,
+            };
+            responses[id] = [];
+            
+            // Save to localStorage for quick access
+            saveJobsToLocalStorage();
+            
+            input.value = "";
+            
+            // Reset textarea to original size
+            input.style.height = '48px';
+
+            // Render the updated jobs list
+            renderJobs();
+            
+            console.log(`✅ Job created: ${title} (${id})`);
+        }
+
+        // Save jobs to localStorage
+        function saveJobsToLocalStorage() {
+            try {
+                const jobsData = {};
+                for (const [id, job] of Object.entries(jobs)) {
+                    // Don't save intervalId (can't be serialized)
+                    const { intervalId, ...jobData } = job;
+                    jobsData[id] = jobData;
+                }
+                localStorage.setItem('intellimeet_jobs', JSON.stringify(jobsData));
+                console.log('Jobs saved to localStorage');
+            } catch (error) {
+                console.error('Failed to save jobs:', error);
+            }
+        }
+
+        // Load jobs from localStorage
+        function loadJobsFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('intellimeet_jobs');
+                if (saved) {
+                    const jobsData = JSON.parse(saved);
+                    for (const [id, jobData] of Object.entries(jobsData)) {
+                        jobs[id] = { ...jobData, intervalId: null };
+                        responses[id] = [];
+                    }
+                    console.log(`Loaded ${Object.keys(jobs).length} jobs from localStorage`);
+                }
+            } catch (error) {
+                console.error('Failed to load jobs:', error);
+            }
+        }
+
+        async function removeJob(id) {
+            if (jobs[id].intervalId) clearInterval(jobs[id].intervalId);
+            
+            // Delete job from server database
+            try {
+                await fetch(`${API}/forms/jobs/${id}`, { method: "DELETE" });
+                console.log(`Job ${id} deleted from database`);
+            } catch (error) {
+                console.error(`Failed to delete job ${id} from database:`, error);
+            }
+            
+            // Remove from local state
+            delete jobs[id];
+            delete responses[id];
+            
+            // Save to localStorage
+            saveJobsToLocalStorage();
+            
+            // Refresh the jobs display
+            renderJobs();
+        }
+
+        async function connectForm(id) {
+            const job = jobs[id];
+            const url = job.url.trim();
+            if (!url) return;
+
+            job.phase = "loading";
+            job.errMsg = "";
+            saveJobsToLocalStorage(); // Save before connecting
+            renderJobs();
+
+            try {
+                const r = await fetch(`${API}/forms/watch`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        form_url: url,
+                        job_id: id,
+                        download_existing: job.downloadExisting || false,
+                        job_description: (job.jobDescription || "").trim(),
+                    }),
+                });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.detail || "Failed to connect");
+
+                job.info = data;
+                job.phase = "watching";
+
+                // Save to localStorage
+                saveJobsToLocalStorage();
+
+                // Refresh status immediately to get initial last_checked time
+                await refreshStatus(id);
+                
+                // Then start polling status every 5 seconds
+                job.intervalId = setInterval(() => refreshStatus(id), 5000);
+            } catch (e) {
+                job.errMsg = e.message;
+                job.phase = "error";
+            }
+            renderJobs();
+        }
+
+        async function disconnectForm(id) {
+            const job = jobs[id];
+            if (job.intervalId) clearInterval(job.intervalId);
+            await fetch(`${API}/forms/watch/${id}`, { method: "DELETE" }).catch(() => { });
+            job.phase = "idle";
+            job.info = null;
+            job.url = "";
+            renderJobs();
+        }
+
+        async function pollNow(id) {
+            await fetch(`${API}/forms/poll-now/${id}`, { method: "POST" }).catch(() => { });
+            setTimeout(() => refreshStatus(id), 1000);
+        }
+
+        async function downloadExisting(id) {
+            try {
+                const r = await fetch(`${API}/forms/download-existing/${id}`, { method: "POST" });
+                const data = await r.json();
+                if (data.processed > 0) {
+                    alert("Downloaded " + data.processed + " resume(s). Check backend/uploads/ folder.");
+                }
+                refreshStatus(id);
+            } catch (e) {
+                alert("Failed: " + e.message);
+            }
+        }
+
+        async function checkInterviewResponses() {
+            try {
+                const r = await fetch(`${API}/forms/check-interview-responses`, { method: "POST" });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.detail || "Failed");
+                if (data.rescheduled > 0) {
+                    alert("Checked " + data.checked + " interview(s). Rescheduled " + data.rescheduled + " (candidate had declined — new invite sent).");
+                } else if (data.checked > 0) {
+                    alert("Checked " + data.checked + " interview(s). No declines needing reschedule.");
+                } else {
+                    alert("No scheduled interviews to check.");
+                }
+            } catch (e) {
+                alert("Failed: " + e.message);
+            }
+        }
+
+        async function refreshStatus(id) {
+            try {
+                const r = await fetch(`${API}/forms/jobs`);
+                const data = await r.json();
+                if (data && data.ok && data.jobs) {
+                    const jobData = data.jobs.find(j => j.job_id === id);
+                    if (jobData && jobs[id]) {
+                        // Update job info with latest data from server
+                        jobs[id].info = jobData.watcher_info;
+                        jobs[id].lastChecked = jobData.last_checked;
+                        
+                        // Re-render the entire jobs list to show updated data
+                        renderJobs();
+                        
+                        console.log(`Status refreshed for ${id}: last_checked=${jobData.last_checked}`);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to refresh status:", e);
+            }
+        }
+
+        function setUrl(id, val) {
+            if (!jobs[id]) return;
+            jobs[id].url = val;
+            
+            // Update button state without re-rendering entire page
+            const container = document.getElementById("jobs-list");
+            const card = container ? container.querySelector("[data-job-id=\"" + id + "\"]") : null;
+            if (card) {
+                const btn = card.querySelector(".fw-btn");
+                if (btn) {
+                    btn.disabled = !val.trim();
+                }
+            }
+            
+            // Save to localStorage
+            saveJobsToLocalStorage();
+        }
+
+        // ── Render ────────────────────────────────────────────────────────────
+        function renderJobs() {
+            const container = document.getElementById("jobs-list");
+            container.innerHTML = "";
+
+            for (const [id, job] of Object.entries(jobs)) {
+                const card = document.createElement("div");
+                card.className = "job-card slide-up";
+                card.setAttribute("data-job-id", id);
+
+                let watcherHTML = "";
+
+                if (job.phase === "idle" || job.phase === "error") {
+                    watcherHTML = `
+          <div class="fw-card">
+            <div class="fw-label">Job Skills & Requirements</div>
+            <textarea class="fw-textarea" placeholder="Describe the key skills, qualifications, and requirements for this role. Be specific about technical skills, experience level, and any other criteria. AI will score resumes based on these requirements." rows="6"
+              oninput="jobs['${id}'].jobDescription=this.value;"
+              onblur="saveJobDescription('${id}')">${esc(job.jobDescription || '')}</textarea>
+            <div class="fw-label" style="margin-top:24px">Google Form Link</div>
+            <div class="fw-row">
+              <input class="fw-input" placeholder="https://docs.google.com/forms/d/XXXX/edit (use EDIT link, not Send/Preview)" value="${esc(job.url)}"
+                oninput="setUrl('${id}', this.value)"
+                onkeydown="if(event.key==='Enter')connectForm('${id}')" />
+              <button class="fw-btn" onclick="connectForm('${id}')" ${job.url.trim() ? '' : 'disabled'}>Connect →</button>
+            </div>
+            <label class="fw-checkbox">
+              <input type="checkbox" ${job.downloadExisting ? 'checked' : ''} onchange="jobs['${id}'].downloadExisting=this.checked; saveJobsToLocalStorage();" />
+              Download resumes for existing responses too (when connecting)
+            </label>
+            ${job.phase === "error" ? `<div class="fw-err">❌ ${esc(job.errMsg)}</div>` : ""}
+            <div class="fw-hint">Use the form <strong>EDIT</strong> link (open your form in Google Forms and copy the URL from the address bar — it should end with /edit). Do not use the link from Send or Preview.</div>
+          </div>`;
+                } else if (job.phase === "loading") {
+                    watcherHTML = `
+          <div class="fw-card">
+            <div class="fw-label">Google Form Link</div>
+            <div class="fw-loading">
+              <span class="fw-spinner spin"></span>
+              Connecting to form...
+            </div>
+          </div>`;
+                } else if (job.phase === "watching" && job.info) {
+                    const info = job.info;
+                    
+                    // Convert UTC time to IST (Asia/Kolkata) for last checked time
+                    const lastChecked = (job.lastChecked || info.last_checked)
+                        ? utcToISTTime(job.lastChecked || info.last_checked)
+                        : "pending...";
+
+                    let colsHTML = "";
+                    if (info.columns_detected) {
+                        const tags = Object.keys(info.columns_detected).map(k =>
+                            `<span class="tag ${k === 'resume' ? 'accent' : ''}">${esc(k)}</span>`
+                        ).join("");
+                        let warnings = "";
+                        if (!info.columns_detected.resume) {
+                            warnings += `<div class="fw-warn">⚠ No file upload column detected. Make sure your form has a "File Upload" question for resumes.</div>`;
+                        }
+                        if (!info.columns_detected.email) {
+                            warnings += `<div class="fw-warn">⚠ No email column detected. Add a question titled "Email" or "Email address" so we can send the calendar invite to the candidate (we don't need access to their calendar).</div>`;
+                        }
+                        colsHTML = `
+            <div style="margin-top:12px">
+              <div class="col-label">Auto-detected fields</div>
+              <div class="tags">${tags}</div>
+              ${warnings}
+            </div>`;
+                    }
+
+                    watcherHTML = `
+          <div class="fw-card">
+            <div class="fw-label">Google Form Link</div>
+            <div class="fw-watch-header">
+              <div class="live-row">
+                <span class="live-dot pulse"></span>
+                <span class="live-text">Live — watching for responses</span>
+              </div>
+              <div class="fw-actions">
+                <button class="small-btn" onclick="downloadExisting('${id}')" title="Download resumes for all existing rows in the sheet">Download existing</button>
+                <button class="small-btn" onclick="pollNow('${id}')">Check now</button>
+                <button class="small-btn" onclick="checkInterviewResponses()" title="If any candidate declined, reschedule to a new slot and send new invite">Check responses</button>
+                <button class="small-btn-red" onclick="disconnectForm('${id}')">Disconnect</button>
+              </div>
+            </div>
+            <div class="info-grid">
+              <div class="info-row">
+                <span class="info-label">Form</span>
+                <span class="info-val bold">${esc(info.form_title || '')}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Existing responses</span>
+                <span class="info-val">${info.existing_responses ?? 0}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">New responses found</span>
+                <span class="info-val accent">${info.total_processed ?? 0}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Last checked</span>
+                <span class="info-val">${esc(lastChecked)}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Response sheet</span>
+                <span class="info-val"><a href="${esc(info.sheet_url || '#')}" target="_blank" rel="noreferrer">Open Sheet ↗</a></span>
+              </div>
+            </div>
+            ${colsHTML}
+            ${info.last_error ? `<div class="fw-err">⚠ Last error: ${esc(info.last_error)}</div>` : ""}
+          </div>`;
+                }
+
+                card.innerHTML = `
+        <div class="job-header">
+          <div class="job-title-section">
+            <h3 class="job-title">${esc(job.title)}</h3>
+            <span class="job-meta">${esc(id)} • created ${esc(job.createdAt)}</span>
+          </div>
+          <button class="remove-btn" onclick="removeJob('${id}')" title="Remove job">×</button>
+        </div>
+        ${watcherHTML}
+      `;
+                container.appendChild(card);
+            }
+        }
+
+        function esc(str) {
+            if (str == null) return "";
+            const div = document.createElement("div");
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+    </script>
+
+</body>
+
 </html>

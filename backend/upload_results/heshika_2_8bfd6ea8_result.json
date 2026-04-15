@@ -1,0 +1,29 @@
+{
+  "name": "heshika",
+  "email": "heshika1744@gmail.com",
+  "row": 2,
+  "job_id": "job_1776119505563",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/heshika_2_8bfd6ea8_HESHIKA_VARTHINI_S_FlowCV_Resume_2026-04-07 (2) - Heshika varthini.pdf",
+  "parse_ok": true,
+  "word_count": 812,
+  "score": 92,
+  "threshold": 50.0,
+  "above_threshold": true,
+  "reasoning": "The resume is a strong match for the Junior Data Scientist/Developer role, as it highlights relevant technical skills such as machine learning, data analytics, and programming languages like Python and SQL. The candidate's projects and experience also demonstrate hands-on experience with data science tools and techniques, making them a good fit for the position.",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": [],
+  "scheduled_event": {
+    "ok": true,
+    "event_link": "https://www.google.com/calendar/event?eid=MXM2MWxnaDdtc2VqaTk3N2t2ajQ3cjlqdHMgc2Fydmluc3VyeWEwNkBt",
+    "meet_link": "https://meet.google.com/jqw-znjr-nzs",
+    "start": "2026-04-14T05:30:00+00:00",
+    "end": "2026-04-14T06:00:00+00:00",
+    "event_id": "1s61lgh7mseji977kvj47r9jts",
+    "calendar_id": "primary",
+    "candidate_invited": true,
+    "candidate_email": "heshika1744@gmail.com",
+    "error": null
+  },
+  "reschedule_count": 0
+}

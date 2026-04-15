@@ -13,6 +13,9 @@ HOW IT WORKS:
 import re, io, asyncio, os, logging
 from datetime import datetime
 from pathlib import Path
+from sqlalchemy.orm import Session
+from database import SessionLocal
+import crud
 
 logger = logging.getLogger(__name__)
 
@@ -617,6 +620,7 @@ class FormWatcher:
         self.last_row = len(existing.get("values", []))
 
         existing_count = max(0, self.last_row - 1)  # subtract header
+        self.existing_responses = existing_count  # Store as instance variable
         logger.info(
             f"Ready. Form='{self.form_title}' | "
             f"Existing responses={existing_count} | "
@@ -647,6 +651,17 @@ class FormWatcher:
                 logger.error(f"Poll error: {e}")
 
             self.last_checked = datetime.utcnow()
+            
+            # Update database with last_checked time
+            try:
+                db = SessionLocal()
+                try:
+                    crud.update_form_watcher(db, self.job_id, last_checked=self.last_checked, total_responses=self.total_processed)
+                finally:
+                    db.close()
+            except Exception as e:
+                logger.error(f"Failed to update last_checked in database: {e}")
+            
             await asyncio.sleep(self.poll_every)
 
     async def stop(self):
@@ -725,15 +740,19 @@ class FormWatcher:
 
     def status(self) -> dict:
         return {
-            "running":         self.running,
-            "form_title":      self.form_title,
-            "form_url":        self.form_url,
-            "job_id":          self.job_id,
-            "sheet_id":        self.sheet_id,
-            "last_row":        self.last_row,
-            "total_processed": self.total_processed,
-            "last_checked":    self.last_checked.isoformat() if self.last_checked else None,
-            "last_error":      self.last_error,
+            "running":            self.running,
+            "form_title":         self.form_title,
+            "form_url":           self.form_url,
+            "job_id":             self.job_id,
+            "sheet_id":           self.sheet_id,
+            "sheet_url":          self.sheet_url,
+            "last_row":           self.last_row,
+            "existing_responses": self.existing_responses,  # Count when watcher started
+            "total_processed":    self.total_processed,     # New responses processed
+            "last_checked":       self.last_checked.isoformat() if self.last_checked else None,
+            "last_error":         self.last_error,
+            "columns_detected":   {k: self.all_headers[v] for k, v in self.col_map.items()
+                                   if isinstance(k, str) and isinstance(v, int) and v < len(self.all_headers)},
         }
 
 
