@@ -31,6 +31,327 @@ job_config: dict = {}
 router = APIRouter(prefix="/api/forms", tags=["Forms"])
 
 
+class GenerateFormRequest(BaseModel):
+    """Request to auto-generate a Google Form for a job role."""
+    job_title: str
+    job_description: str
+
+
+@router.post("/generate-form", summary="Auto-generate Google Form for job role")
+async def generate_google_form(req: GenerateFormRequest, db: Session = Depends(get_db)):
+    """
+    Automatically create a Google Form with standard job application fields.
+    Returns the form edit link and form ID.
+    """
+    try:
+        from form_watcher import get_google_creds
+        from googleapiclient.discovery import build
+        
+        creds = get_google_creds()
+        forms_service = build("forms", "v1", credentials=creds)
+        drive_service = build("drive", "v3", credentials=creds)
+        
+        # Create form structure with professional formatting
+        # Clean the job title (remove common suffixes like "(Short)", "(Full)", etc.)
+        import re
+        clean_title = re.sub(r'\s*\([^)]*\)\s*$', '', req.job_title.strip())
+        clean_title = re.sub(r'\s+[-–—]\s+.*$', '', clean_title).strip()
+        
+        form_title = f"Job Application - {clean_title}"
+        form_description = (
+            f"Thank you for your interest in the {clean_title} position.\n\n"
+            f"Please complete all required fields marked with *. "
+            f"We will review your application and contact shortlisted candidates for the next steps.\n\n"
+            f"Position: {clean_title}"
+        )
+        
+        # Define form structure with all required fields
+        new_form = {
+            "info": {
+                "title": form_title,
+                "documentTitle": form_title,
+            }
+        }
+        
+        # Create the form
+        form = forms_service.forms().create(body=new_form).execute()
+        form_id = form["formId"]
+        
+        # Update form with description and questions
+        requests = [
+            {
+                "updateFormInfo": {
+                    "info": {
+                        "title": form_title,
+                        "description": form_description,
+                    },
+                    "updateMask": "description"
+                }
+            },
+            # Full Name
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Full Name",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 0}
+                }
+            },
+            # Email
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Email address",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 1}
+                }
+            },
+            # Phone
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Phone / WhatsApp",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 2}
+                }
+            },
+            # Resume - will need manual conversion to file upload
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Resume",
+                        "description": "⚠️ HR: Please convert this to 'File upload' type in the form editor",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 3}
+                }
+            },
+            # LinkedIn
+            {
+                "createItem": {
+                    "item": {
+                        "title": "LinkedIn profile URL",
+                        "questionItem": {
+                            "question": {
+                                "required": False,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 4}
+                }
+            },
+            # Years of Experience
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Years of experience",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 5}
+                }
+            },
+            # Current Role
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Current role",
+                        "questionItem": {
+                            "question": {
+                                "required": False,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 6}
+                }
+            },
+            # Key Skills
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Key skills",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "textQuestion": {"paragraph": True}
+                            }
+                        }
+                    },
+                    "location": {"index": 7}
+                }
+            },
+            # Notice Period
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Notice period",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "choiceQuestion": {
+                                    "type": "RADIO",
+                                    "options": [
+                                        {"value": "Immediate"},
+                                        {"value": "<15 days"},
+                                        {"value": "<30 days"},
+                                        {"value": "<60 days"}
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "location": {"index": 8}
+                }
+            },
+            # Expected Salary
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Expected salary (LPA)",
+                        "questionItem": {
+                            "question": {
+                                "required": False,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 9}
+                }
+            },
+            # Work Mode
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Work mode preference",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "choiceQuestion": {
+                                    "type": "RADIO",
+                                    "options": [
+                                        {"value": "Hybrid"},
+                                        {"value": "Remote"},
+                                        {"value": "On-Site"}
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "location": {"index": 10}
+                }
+            },
+            # Location
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Location / city",
+                        "questionItem": {
+                            "question": {
+                                "required": True,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 11}
+                }
+            },
+            # Portfolio/GitHub
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Portfolio / GitHub",
+                        "questionItem": {
+                            "question": {
+                                "required": False,
+                                "textQuestion": {"paragraph": False}
+                            }
+                        }
+                    },
+                    "location": {"index": 12}
+                }
+            },
+            # Cover Letter
+            {
+                "createItem": {
+                    "item": {
+                        "title": "Cover letter",
+                        "questionItem": {
+                            "question": {
+                                "required": False,
+                                "textQuestion": {"paragraph": True}
+                            }
+                        }
+                    },
+                    "location": {"index": 13}
+                }
+            }
+        ]
+        
+        # Apply all updates to the form
+        forms_service.forms().batchUpdate(
+            formId=form_id,
+            body={"requests": requests}
+        ).execute()
+        
+        # Note: Google Forms API does not support programmatically linking forms to sheets
+        # The "Link to Sheets" feature is only available through the UI
+        # Users will need to click "Link to Sheets" button manually after form creation
+        # 
+        # Reference: https://issuetracker.google.com/issues/154216244
+        # This is a known limitation of the Google Forms API
+        sheet_id = None
+        _log.info(f"Form {form_id} created. Sheet linking must be done manually via form UI.")
+        
+        # Get the form edit link
+        form_edit_url = f"https://docs.google.com/forms/d/{form_id}/edit"
+        form_response_url = f"https://docs.google.com/forms/d/{form_id}/viewform"
+        
+        return {
+            "ok": True,
+            "form_id": form_id,
+            "form_edit_url": form_edit_url,  # For you (HR) to edit form and connect to monitoring
+            "form_response_url": form_response_url,  # For candidates to fill out
+            "sheet_id": None,
+            "message": "Google Form created successfully! " +
+                      "Next steps: (1) Click 'Link to Sheets' in the Responses tab, " +
+                      "(2) Change Resume field to File upload type, " +
+                      "(3) Copy the sheet URL and paste it below to connect."
+        }
+        
+    except Exception as e:
+        _log.error(f"Form generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate form: {str(e)}")
+
+
 @router.get("", summary="Forms API check", responses={200: {"content": {"application/json": {}, "text/html": {}}}})
 async def forms_api_root(request: Request):
     """Confirm Forms API is mounted. Returns HTML in browser, JSON for API clients."""
@@ -275,11 +596,13 @@ async def on_new_response(response, resume_bytes, resume_filename, job_id):
                             db=db,
                             candidate_id=candidate.id,
                             calendar_event_id=calendar_event_id,
+                            meeting_link=schedule_result.get("meet_link"),
                             scheduled_start=scheduled_dt,
                             scheduled_end=scheduled_end_dt,
+                            duration_minutes=meeting_mins,
                             status="scheduled",
                         )
-                        _log.info(f"✅ Interview saved to DB: {name} at {scheduled_time}")
+                        _log.info(f"✅ Interview saved to DB: {name} at {scheduled_time} | Meet: {schedule_result.get('meet_link')}")
                     
                     # Log activity
                     crud.create_activity_log(
@@ -529,6 +852,10 @@ async def get_all_jobs(db: Session = Depends(get_db)):
             watcher_obj = watcher_registry._watchers[job_db.id]
             watcher_info = watcher_obj.status() if hasattr(watcher_obj, 'status') else None
         
+        # Use DB candidate count as source of truth for total_responses
+        # (watcher count can be wrong if watcher was reset/reconnected)
+        total_candidates_in_db = stats.get("total_candidates", 0)
+        
         result.append({
             "job_id": job_db.id,
             "title": job_db.title,
@@ -539,7 +866,7 @@ async def get_all_jobs(db: Session = Depends(get_db)):
             "is_watching": watcher.is_active if watcher else False,
             "form_title": watcher.form_title if watcher else None,
             "last_checked": watcher.last_checked.isoformat() if watcher and watcher.last_checked else None,
-            "total_responses": watcher.total_responses if watcher else 0,
+            "total_responses": total_candidates_in_db,  # Use DB count, not watcher count
             "stats": stats,
             "watcher_info": watcher_info,
         })
@@ -847,17 +1174,51 @@ async def check_interview_responses():
             details.append({"file": path.name, "email": email, "status": "no_decline"})
             continue
         declined_who = ", ".join(declined_emails) if declined_emails else "attendee"
+        
+        # Smart rescheduling logic based on attempt count
+        # 1st reschedule: Same day different slot (FN→AN or AN→next day FN)
+        # 2nd reschedule: 2 days later
+        # 3rd reschedule: 7 days later
+        from datetime import datetime, timedelta, timezone as dt_timezone
+        
+        # Parse the previous scheduled time
+        previous_start_str = se.get("start")
+        previous_start_dt = None
+        if previous_start_str:
+            try:
+                previous_start_dt = datetime.fromisoformat(previous_start_str.replace('Z', '+00:00'))
+            except:
+                pass
+        
+        # Determine offset based on reschedule count
+        now_utc = datetime.now(dt_timezone.utc)
+        if reschedule_count == 0:
+            # First reschedule: try same day or next day (FN/AN logic)
+            start_from_date = previous_start_dt if previous_start_dt else now_utc
+        elif reschedule_count == 1:
+            # Second reschedule: 2 days later
+            start_from_date = now_utc + timedelta(days=2)
+        else:
+            # Third reschedule: 7 days later
+            start_from_date = now_utc + timedelta(days=7)
+        
         # Candidate or interviewer declined: find new slot, create new event, cancel old
         new_result = schedule_interview(
             creds, calendar_id=calendar_id,
             candidate_name=name, candidate_email=email, job_id=job_id,
             duration_minutes=meeting_mins,
             interviewer_email=config.get("interviewer_email"),
+            start_from_date=start_from_date,
+            previous_slot_time=previous_start_dt if reschedule_count == 0 else None,
         )
         if not new_result.get("ok"):
             details.append({"file": path.name, "email": email, "action": "reschedule_failed", "error": new_result.get("error"), "declined": declined_emails})
             continue
+        
+        # Cancel the old event
         cancel_event(creds, calendar_id, event_id)
+        
+        # Update the JSON result file
         data["scheduled_event"] = new_result
         data["reschedule_count"] = reschedule_count + 1
         data.setdefault("rescheduled_events", []).append({
@@ -867,13 +1228,52 @@ async def check_interview_responses():
         })
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        # Update the interview record in the database
+        try:
+            from database import SessionLocal
+            import crud
+            db = SessionLocal()
+            try:
+                # Find the interview by old calendar_event_id
+                interview = db.query(models.Interview).filter(
+                    models.Interview.calendar_event_id == event_id
+                ).first()
+                
+                if interview:
+                    # Parse new scheduled times
+                    new_start_str = new_result.get("start")
+                    new_end_str = new_result.get("end")
+                    
+                    if new_start_str and new_end_str:
+                        new_start_dt = datetime.fromisoformat(new_start_str.replace('Z', '+00:00'))
+                        new_end_dt = datetime.fromisoformat(new_end_str.replace('Z', '+00:00'))
+                        
+                        # Update interview record
+                        interview.calendar_event_id = new_result.get("event_id")
+                        interview.meeting_link = new_result.get("meet_link")
+                        interview.scheduled_start = new_start_dt
+                        interview.scheduled_end = new_end_dt
+                        interview.status = "scheduled"
+                        interview.response_status = "needsAction"
+                        
+                        db.commit()
+                        _log.info(f"✅ Updated interview DB record for {email}: new event {new_result.get('event_id')}")
+            finally:
+                db.close()
+        except Exception as db_e:
+            _log.error(f"Failed to update interview in DB during reschedule: {db_e}")
+        
         rescheduled += 1
         details.append({
             "file": path.name, "email": email, "action": "rescheduled",
             "declined": declined_emails,
+            "reschedule_count": reschedule_count + 1,
+            "offset_days": 0 if reschedule_count == 0 else (2 if reschedule_count == 1 else 7),
             "new_start": new_result.get("start"), "new_meet_link": new_result.get("meet_link"),
         })
-        _log.info("Rescheduled interview for %s (declined by: %s) -> %s", email, declined_who, new_result.get("start"))
+        _log.info("Rescheduled interview for %s (declined by: %s) -> %s (attempt %d)", 
+                  email, declined_who, new_result.get("start"), reschedule_count + 1)
     return {"checked": checked, "rescheduled": rescheduled, "details": details}
 
 

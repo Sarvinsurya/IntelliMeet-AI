@@ -7,10 +7,11 @@
     <meta name="description"
         content="IntelliMeet AI — AI-powered HR automation for resume scoring and interview scheduling." />
     <title>IntelliMeet AI — Smart HR Automation</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet" />
     <style>
         *,
@@ -22,30 +23,30 @@
         }
 
         :root {
-            --bg: #ffffff;
+            --bg: #fafbfc;
             --bg-card: #ffffff;
-            --bg-secondary: #f8fafc;
+            --bg-secondary: #f3f4f6;
             --bg-input: #ffffff;
-            --border: #e2e8f0;
-            --border-light: #f1f5f9;
-            --text: #0f172a;
-            --text2: #64748b;
-            --text3: #94a3b8;
+            --border: #d1d5db;
+            --border-light: #e5e7eb;
+            --text: #111827;
+            --text2: #4b5563;
+            --text3: #6b7280;
             --accent: #6366f1;
             --accent-hover: #4f46e5;
             --accent-soft: #eef2ff;
-            --accent-text: #4f46e5;
-            --green: #10b981;
+            --accent-text: #4338ca;
+            --green: #059669;
             --green-soft: #d1fae5;
-            --red: #ef4444;
+            --red: #dc2626;
             --red-soft: #fee2e2;
-            --yellow: #f59e0b;
+            --yellow: #d97706;
             --yellow-soft: #fef3c7;
-            --blue: #3b82f6;
+            --blue: #2563eb;
             --blue-soft: #dbeafe;
-            --shadow: rgba(0, 0, 0, 0.05);
-            --shadow-md: rgba(0, 0, 0, 0.08);
-            --shadow-lg: rgba(0, 0, 0, 0.12);
+            --shadow: rgba(0, 0, 0, 0.08);
+            --shadow-md: rgba(0, 0, 0, 0.12);
+            --shadow-lg: rgba(0, 0, 0, 0.16);
             --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --gradient-2: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             --gradient-3: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -91,6 +92,117 @@
             -moz-osx-font-smoothing: grayscale;
             font-feature-settings: 'liga', 'kern';
             position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Subtle gradient overlay for light mode */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, 
+                rgba(99, 102, 241, 0.02) 0%,
+                transparent 20%,
+                transparent 80%,
+                rgba(139, 92, 246, 0.02) 100%
+            );
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        [data-theme="dark"] body::after {
+            display: none;
+        }
+        
+        /* Animated Background Shapes */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+        
+        .bg-shape-1 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+            top: 10%;
+            left: 5%;
+            animation: float-shape-1 25s ease-in-out infinite;
+            filter: blur(60px);
+        }
+        
+        .bg-shape-2 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
+            top: 60%;
+            right: 10%;
+            animation: float-shape-2 20s ease-in-out infinite;
+            filter: blur(50px);
+        }
+        
+        .bg-shape-3 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(99, 102, 241, 0.06));
+            bottom: 15%;
+            left: 50%;
+            animation: float-shape-3 30s ease-in-out infinite;
+            filter: blur(40px);
+        }
+        
+        [data-theme="dark"] .bg-shape {
+            opacity: 0.6;
+        }
+        
+        [data-theme="dark"] .bg-shape-1 {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.12));
+        }
+        
+        [data-theme="dark"] .bg-shape-2 {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(59, 130, 246, 0.12));
+        }
+        
+        [data-theme="dark"] .bg-shape-3 {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1));
+        }
+        
+        @keyframes float-shape-1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        
+        @keyframes float-shape-2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-40px, -40px) scale(1.15); }
+        }
+        
+        @keyframes float-shape-3 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-25px, 25px) scale(1.05); }
+            66% { transform: translate(25px, -15px) scale(0.95); }
+        }
+        
+        /* Smooth card hover lift effect */
+        .job-card,
+        .fw-card,
+        .step-card {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+        }
+        
+        .job-card:hover,
+        .step-card:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+        
+        .fw-card:hover {
+            transform: translateY(-4px);
         }
 
         [data-theme="dark"] body::before {
@@ -193,9 +305,11 @@
             margin: 0 auto;
             padding: 0 32px;
             width: 100%;
+            position: relative;
+            z-index: 1;
         }
 
-        /* header */
+        /* header - full width background */
         .header {
             padding: 28px 0;
             border-bottom: 1px solid var(--border-light);
@@ -203,11 +317,28 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 32px;
-            background: var(--bg);
+            margin-left: -32px;
+            margin-right: -32px;
+            padding-left: 32px;
+            padding-right: 32px;
+            background: rgba(255, 255, 255, 0.8);
             position: sticky;
             top: 0;
             z-index: 100;
             backdrop-filter: blur(12px);
+            width: calc(100% + 64px);
+            margin-top: -32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        [data-theme="dark"] .header {
+            background: rgba(10, 14, 26, 0.8);
+            box-shadow: none;
+        }
+        
+        /* Add padding back to page for header */
+        .page {
+            padding-top: 32px;
         }
 
         .header-actions {
@@ -265,9 +396,10 @@
         }
 
         .logo-text {
-            font-size: 26px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         [data-theme="dark"] .logo-text {
@@ -283,10 +415,11 @@
         }
 
         .subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text2);
             font-weight: 500;
-            letter-spacing: -0.01em;
+            letter-spacing: -0.005em;
+            font-family: 'Inter', sans-serif;
         }
 
         /* Theme Toggle */
@@ -589,13 +722,17 @@
 
         .job-card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 32px;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 3px var(--shadow), 0 4px 12px var(--shadow-md);
+            border: 1.5px solid var(--border-light);
+            border-radius: 20px;
+            padding: 28px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px var(--shadow);
             position: relative;
             overflow: hidden;
+        }
+        
+        [data-theme="dark"] .job-card {
+            border-color: var(--border);
         }
 
         .job-card::before {
@@ -604,16 +741,16 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            height: 3px;
             background: var(--gradient-2);
             opacity: 0;
             transition: opacity 0.3s;
         }
 
         .job-card:hover {
-            box-shadow: 0 8px 24px var(--shadow-md), 0 12px 40px var(--shadow-lg);
+            box-shadow: 0 4px 16px var(--shadow-md), 0 8px 32px var(--shadow-lg);
             border-color: var(--accent);
-            transform: translateY(-4px);
+            transform: translateY(-2px);
         }
 
         .job-card:hover::before {
@@ -638,20 +775,22 @@
         }
 
         .job-title {
-            font-size: 21px;
+            font-size: 19px;
             font-weight: 700;
             color: var(--text);
-            margin-bottom: 8px;
-            line-height: 1.3;
+            margin-bottom: 6px;
+            line-height: 1.4;
             word-wrap: break-word;
             letter-spacing: -0.02em;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         .job-meta {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
             display: block;
+            font-weight: 400;
         }
 
         .remove-btn {
@@ -679,21 +818,30 @@
 
         /* form watcher card */
         .fw-card {
-            background: var(--bg-input);
-            border: 2px solid var(--border);
-            border-radius: 20px;
-            padding: 32px;
-            box-shadow: 0 4px 12px var(--shadow);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px var(--shadow);
+            transition: all 0.2s ease;
+        }
+
+        .fw-card:hover {
+            border-color: var(--border);
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
         .fw-label {
             font-size: 13px;
             color: var(--text);
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 700;
-            margin-bottom: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
             display: block;
             letter-spacing: -0.01em;
+            text-transform: uppercase;
+            font-size: 11px;
+            color: var(--text2);
         }
 
         .fw-row {
@@ -705,77 +853,97 @@
         .fw-input {
             flex: 1;
             background: var(--bg-input);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
             color: var(--text);
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
             font-family: 'JetBrains Mono', monospace;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-weight: 400;
+            transition: all 0.2s ease;
+        }
+
+        .fw-input:hover {
+            border-color: var(--text3);
         }
 
         .fw-input:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-soft);
+            background: var(--bg);
         }
 
         .fw-input::placeholder {
             color: var(--text3);
+            font-weight: 400;
         }
 
         .fw-textarea {
             width: 100%;
-            min-height: 120px;
+            min-height: 140px;
             background: var(--bg-input);
-            border: 2px solid var(--border);
+            border: 1.5px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
+            padding: 14px 16px;
             color: var(--text);
             font-size: 14px;
-            line-height: 1.7;
+            line-height: 1.6;
             outline: none;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 450;
+            font-weight: 400;
             resize: vertical;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+        }
+
+        .fw-textarea:hover {
+            border-color: var(--text3);
         }
 
         .fw-textarea:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-soft);
+            background: var(--bg);
         }
 
         .fw-textarea::placeholder {
             color: var(--text3);
+            font-weight: 400;
         }
 
         .fw-btn {
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-size: 14px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             border: none;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             white-space: nowrap;
             background: var(--accent);
             color: white;
-            box-shadow: 0 2px 8px var(--shadow);
+            box-shadow: 0 1px 3px var(--shadow);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
         }
 
         .fw-btn:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px var(--shadow-lg);
-            background: #4338ca;
+            box-shadow: 0 3px 8px var(--shadow-md);
+            background: var(--accent-hover);
+        }
+
+        .fw-btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px var(--shadow);
         }
 
         .fw-btn:disabled {
-            background: var(--text3);
-            color: white;
+            background: var(--border);
+            color: var(--text3);
             cursor: not-allowed;
-            opacity: 0.5;
+            opacity: 0.6;
+            box-shadow: none;
         }
 
         .fw-hint {
@@ -834,7 +1002,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: rgba(255, 255, 255, 0.35);
+            color: var(--text3);
             font-size: 13px;
             padding: 8px 0;
         }
@@ -872,7 +1040,7 @@
 
         .live-text {
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.65);
+            color: var(--text2);
             font-weight: 500;
         }
 
@@ -883,17 +1051,19 @@
 
         .small-btn {
             padding: 4px 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
             border-radius: 6px;
-            color: rgba(255, 255, 255, 0.35);
+            color: var(--text2);
             font-size: 11px;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .small-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.5);
+            background: var(--bg-card);
+            color: var(--text);
+            border-color: var(--border);
         }
 
         .small-btn-red {
@@ -930,26 +1100,26 @@
 
         .info-label {
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.25);
+            color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
         }
 
         .info-val {
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text2);
         }
 
         .info-val.bold {
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.85);
+            color: var(--text);
         }
 
         .info-val.accent {
-            color: #34d399;
+            color: var(--green);
         }
 
         .info-val a {
-            color: #818cf8;
+            color: var(--accent);
             font-size: 12px;
             text-decoration: none;
         }
@@ -960,11 +1130,12 @@
 
         .col-label {
             font-size: 10px;
-            color: rgba(255, 255, 255, 0.2);
+            color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin-bottom: 8px;
+            opacity: 0.7;
         }
 
         .tags {
@@ -975,18 +1146,18 @@
 
         .tag {
             padding: 3px 10px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
             border-radius: 6px;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.4);
+            color: var(--text2);
             font-family: 'JetBrains Mono', monospace;
         }
 
         .tag.accent {
-            background: rgba(99, 102, 241, 0.12);
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            color: rgba(165, 168, 255, 0.8);
+            background: var(--accent-soft);
+            border: 1px solid var(--accent);
+            color: var(--accent-text);
         }
 
         .fw-warn {
@@ -1006,30 +1177,32 @@
 
         .responses-title {
             font-size: 10px;
-            color: rgba(255, 255, 255, 0.2);
+            color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin-bottom: 8px;
+            opacity: 0.7;
         }
 
         .response-item {
-            background: rgba(52, 211, 153, 0.04);
-            border: 1px solid rgba(52, 211, 153, 0.1);
+            background: var(--green-soft);
+            border: 1px solid var(--green);
             border-radius: 8px;
             padding: 10px 14px;
             margin-bottom: 6px;
+            opacity: 0.8;
         }
 
         .response-name {
             font-size: 13px;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text);
         }
 
         .response-detail {
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.3);
+            color: var(--text2);
             font-family: 'JetBrains Mono', monospace;
             margin-top: 2px;
         }
@@ -1074,93 +1247,219 @@
 
         .footer {
             padding: 20px 0 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            border-top: 1px solid var(--border-light);
             text-align: center;
             margin-top: auto;
         }
 
         .footer-text {
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.12);
+            color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
+            opacity: 0.5;
         }
 
         /* Candidates List Section */
         .candidates-section {
-            margin-top: 24px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 28px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 24px;
         }
 
         .candidates-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.03) 100%);
+            border: 1.5px solid var(--border-light);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .candidates-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .candidates-header:hover::before {
+            opacity: 1;
+        }
+
+        .candidates-header:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .candidates-header:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+        .candidates-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
         }
 
         .candidates-title {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.02em;
         }
 
         .candidates-count {
             font-size: 13px;
-            color: var(--text2);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 4px 12px;
-            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+            letter-spacing: -0.01em;
+        }
+
+        .candidates-toggle {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            color: var(--accent);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px;
+            will-change: transform;
+            position: relative;
+            z-index: 1;
+        }
+
+        .candidates-toggle.expanded {
+            transform: rotate(180deg);
+            background: var(--accent);
+            color: white;
+        }
+
+        .candidates-header:hover .candidates-toggle:not(.expanded) {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .candidates-list {
+            margin-top: 0;
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s ease;
+            overflow: hidden;
+        }
+
+        .candidates-list.expanded {
+            grid-template-rows: 1fr;
+            margin-top: 16px;
+        }
+
+        .candidates-list-inner {
+            overflow: hidden;
         }
 
         .candidate-card {
-            background: var(--bg-secondary);
+            background: var(--bg-card);
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 12px;
-            border: 2px solid var(--border-light);
+            border: 1.5px solid var(--border-light);
             border-left: 4px solid transparent;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 8px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .candidate-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .candidate-card:hover::before {
+            opacity: 1;
         }
 
         .candidate-card:hover {
-            background: var(--bg-card);
-            transform: translateX(6px);
-            box-shadow: 0 4px 16px var(--shadow-md);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px var(--shadow-lg);
+            border-color: var(--border);
         }
 
         .candidate-card.rejected {
             border-left-color: var(--red);
-            background: var(--red-soft);
-            border-color: rgba(239, 68, 68, 0.2);
+            background: linear-gradient(135deg, var(--red-soft) 0%, var(--bg-card) 100%);
+            border-color: rgba(239, 68, 68, 0.25);
+        }
+
+        .candidate-card.rejected:hover {
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
         }
 
         .candidate-card.starting-soon {
             border-left-color: var(--yellow);
-            background: var(--yellow-soft);
-            border-color: rgba(245, 158, 11, 0.2);
+            background: linear-gradient(135deg, var(--yellow-soft) 0%, var(--bg-card) 100%);
+            border-color: rgba(245, 158, 11, 0.25);
+        }
+
+        .candidate-card.starting-soon:hover {
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.15);
         }
 
         .candidate-card.upcoming {
             border-left-color: var(--green);
-            background: var(--green-soft);
-            border-color: rgba(16, 185, 129, 0.2);
+            background: linear-gradient(135deg, var(--green-soft) 0%, var(--bg-card) 100%);
+            border-color: rgba(16, 185, 129, 0.25);
+        }
+
+        .candidate-card.upcoming:hover {
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
         }
 
         .candidate-card.completed {
             border-left-color: var(--blue);
-            background: var(--blue-soft);
-            border-color: rgba(59, 130, 246, 0.2);
+            background: linear-gradient(135deg, var(--blue-soft) 0%, var(--bg-card) 100%);
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
+        .candidate-card.completed:hover {
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
         }
 
         .candidate-info {
             display: flex;
             justify-content: space-between;
             align-items: start;
-            gap: 16px;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         .candidate-left {
@@ -1168,118 +1467,205 @@
         }
 
         .candidate-name {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 6px;
             letter-spacing: -0.02em;
             text-transform: capitalize;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.3;
         }
 
         .candidate-email {
-            font-size: 14px;
+            font-size: 13.5px;
             color: var(--text2);
-            margin-bottom: 10px;
-            font-weight: 450;
+            margin-bottom: 12px;
+            font-weight: 500;
             opacity: 0.85;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.01em;
         }
 
         .candidate-meta {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .candidate-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             font-size: 13px;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-right: 10px;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-weight: 700;
             letter-spacing: -0.01em;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .candidate-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
         }
 
         .candidate-badge.score {
-            background: rgba(99, 102, 241, 0.18);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
             color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.2);
         }
 
         .candidate-badge.phone {
-            background: rgba(100, 116, 139, 0.18);
+            background: rgba(100, 116, 139, 0.12);
             color: #cbd5e1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            border: 1px solid rgba(100, 116, 139, 0.15);
         }
 
         .candidate-view-btn {
-            display: inline-block;
-            font-size: 12px;
-            padding: 6px 14px;
-            background: rgba(100, 116, 139, 0.18);
-            color: #cbd5e1;
-            border: none;
-            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(99, 102, 241, 0.15) 100%);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-            margin-top: 8px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 10px;
             letter-spacing: -0.01em;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
         }
 
         .candidate-view-btn:hover {
-            background: rgba(100, 116, 139, 0.3);
-            color: #e2e8f0;
-            transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(99, 102, 241, 0.2) 100%);
+            color: #bfdbfe;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.4);
         }
 
         .candidate-view-btn:active {
             transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
         }
 
         .candidate-right {
             text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
         }
 
         .candidate-status {
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            letter-spacing: 0.02em;
+            font-size: 11.5px;
+            font-weight: 800;
+            padding: 6px 14px;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .candidate-status.rejected {
-            color: #f87171;
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.25);
         }
 
         .candidate-status.starting-soon {
-            color: #fbbf24;
+            color: #fcd34d;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.25);
         }
 
         .candidate-status.upcoming {
-            color: #34d399;
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.25);
         }
 
         .candidate-status.completed {
-            color: #60a5fa;
+            color: #93c5fd;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.25);
         }
 
         .candidate-time {
             font-size: 13px;
             color: var(--text2);
-            font-weight: 500;
+            font-weight: 600;
             opacity: 0.9;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 6px 12px;
+            background: rgba(100, 116, 139, 0.1);
+            border-radius: 8px;
+            letter-spacing: -0.02em;
         }
 
         .no-candidates {
             text-align: center;
-            padding: 32px;
+            padding: 40px 32px;
             color: var(--text2);
             font-size: 14px;
+            background: rgba(100, 116, 139, 0.05);
+            border-radius: 12px;
+            border: 1.5px dashed var(--border-light);
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        /* Empty state - compact version for 0 candidates */
+        .candidates-section-empty {
+            margin-top: 28px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 24px;
+        }
+
+        .candidates-empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: rgba(100, 116, 139, 0.05);
+            border: 1.5px dashed var(--border-light);
+            border-radius: 12px;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+        }
+
+        .candidates-empty-state:hover {
+            opacity: 0.8;
+            border-color: var(--border);
+        }
+
+        .candidates-count-empty {
+            font-size: 13px;
+            color: var(--text3);
+            font-weight: 600;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
         }
     </style>
 </head>
 
 <body>
+    <!-- Animated Background Shapes -->
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+    <div class="bg-shape bg-shape-3"></div>
 
     <div class="page" id="app">
         <!-- Header -->
@@ -1367,6 +1753,9 @@
     </div>
 
     <script>
+        // ═══════════════════════════════════════════════════════════════
+        // Main Application Code
+        // ═══════════════════════════════════════════════════════════════
         const API = window.location.origin + "/api";
         const jobs = {};       // { jobId: { title, createdAt, phase, info, errMsg, url, intervalId } }
         const responses = {};  // { jobId: [ {name, email, ...}, ... ] }
@@ -1831,6 +2220,96 @@
             renderJobs();
         }
 
+        function updateGenerateButton(id) {
+            const job = jobs[id];
+            const generateBtn = document.querySelector(`button[onclick="generateForm('${id}')"]`);
+            if (generateBtn) {
+                const hasTitle = (job.title || '').trim().length > 0;
+                const hasDescription = (job.jobDescription || '').trim().length > 0;
+                generateBtn.disabled = !(hasTitle && hasDescription);
+            }
+        }
+
+        async function generateForm(id) {
+            const job = jobs[id];
+            const jobTitle = job.title.trim();
+            const jobDescription = job.jobDescription.trim();
+            
+            if (!jobTitle || !jobDescription) {
+                alert('Please fill in the job title and description first.');
+                return;
+            }
+            
+            const button = event.target;
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<span class="fw-spinner spin" style="width: 14px; height: 14px; border-width: 2px;"></span> Generating...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch(`${API}/forms/generate-form`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_title: jobTitle,
+                        job_description: jobDescription
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to generate form');
+                }
+                
+                // Show success message with form URLs
+                const message = `✅ Form Created Successfully!\n\n` +
+                    `📝 STEP 1: Open form editor (auto-filled below)\n` +
+                    `   1. Go to "Responses" tab\n` +
+                    `   2. Click "Link to Sheets" (green icon)\n` +
+                    `   3. Change "Resume" question to "File upload" type\n` +
+                    `   (Takes 30 seconds total)\n\n` +
+                    `📋 STEP 2: Copy the linked Google Sheet URL\n` +
+                    `   → Paste it in the form URL field below\n` +
+                    `   → Click "Connect →" to start monitoring\n\n` +
+                    `🎯 STEP 3: Share with candidates:\n` +
+                    `   ${data.form_response_url}\n` +
+                    `   (✓ Copied to clipboard)`;
+                
+                alert(message);
+                
+                // Auto-fill the form EDIT URL in the input (for connecting/monitoring)
+                job.url = data.form_edit_url;
+                setUrl(id, data.form_edit_url);
+                
+                // Copy RESPONSE URL to clipboard (for sharing with candidates)
+                try {
+                    await navigator.clipboard.writeText(data.form_response_url);
+                    console.log('Form response URL copied to clipboard for sharing');
+                } catch (err) {
+                    console.log('Could not copy to clipboard:', err);
+                    alert(`Copy this link to share with candidates:\n${data.form_response_url}`);
+                }
+                
+                button.innerHTML = '✅ Generated!';
+                button.style.background = 'var(--green)';
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.disabled = false;
+                    button.style.background = '';
+                }, 3000);
+                
+                renderJobs();
+                
+            } catch (error) {
+                console.error('Form generation error:', error);
+                alert(`Failed to generate form: ${error.message}`);
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+            }
+        }
+
         async function pollNow(id) {
             console.log(`[pollNow] Triggering manual poll for job: ${id}`);
             const button = event.target;
@@ -2018,11 +2497,60 @@
                         // Only update dynamic fields without re-rendering entire page
                         updateJobCardDynamicFields(id, jobData);
                         
+                        // Also refresh candidates list to show new applicants
+                        await updateCandidatesList(id);
+                        
                         console.log(`Status refreshed for ${id}: last_checked=${jobData.last_checked}`);
                     }
                 }
             } catch (e) {
                 console.error("Failed to refresh status:", e);
+            }
+        }
+
+        async function updateCandidatesList(jobId) {
+            try {
+                // Fetch fresh candidates data
+                const candidates = await fetchCandidates(jobId);
+                
+                // Find the candidates section in the DOM
+                const card = document.querySelector(`[data-job-id="${jobId}"]`);
+                if (!card) return;
+                
+                // Find or create candidates container
+                let candidatesContainer = card.querySelector('.candidates-section, .candidates-section-empty');
+                
+                // Save the current expanded state BEFORE replacing
+                const candidatesList = candidatesContainer?.querySelector('.candidates-list');
+                const wasExpanded = candidatesList?.classList.contains('expanded');
+                
+                // Generate new candidates HTML
+                const candidatesHTML = renderCandidates(candidates);
+                
+                // Replace the candidates section
+                if (candidatesContainer) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = candidatesHTML;
+                    const newContainer = temp.firstElementChild;
+                    candidatesContainer.replaceWith(newContainer);
+                    
+                    // Restore the expanded state after replacing
+                    if (wasExpanded) {
+                        const newList = newContainer.querySelector('.candidates-list');
+                        const newToggle = newContainer.querySelector('.candidates-header');
+                        if (newList) newList.classList.add('expanded');
+                        if (newToggle) newToggle.classList.add('expanded');
+                    }
+                } else {
+                    // Add candidates section if it doesn't exist
+                    const temp = document.createElement('div');
+                    temp.innerHTML = candidatesHTML;
+                    card.appendChild(temp.firstElementChild);
+                }
+                
+                console.log(`Updated candidates list for ${jobId}: ${candidates.length} candidates`);
+            } catch (error) {
+                console.error(`Failed to update candidates list for ${jobId}:`, error);
             }
         }
 
@@ -2034,8 +2562,8 @@
             const info = jobData.watcher_info;
             if (!info) return;
 
-            // Update last checked time
-            const lastCheckedEl = card.querySelector('.info-row:nth-child(4) .info-val');
+            // Update last checked time (now at position 3 after removing "New since monitoring")
+            const lastCheckedEl = card.querySelector('.info-row:nth-child(3) .info-val');
             if (lastCheckedEl) {
                 const lastChecked = (jobData.last_checked)
                     ? utcToISTTime(jobData.last_checked)
@@ -2043,17 +2571,10 @@
                 lastCheckedEl.textContent = lastChecked;
             }
 
-            // Update "New since monitoring started" count
-            const newResponsesEl = card.querySelector('.info-row:nth-child(3) .info-val');
-            if (newResponsesEl) {
-                newResponsesEl.textContent = info.total_processed ?? 0;
-            }
-
-            // Update "Total responses" count (existing + new)
+            // Update "Total responses" count from DB (now at position 2)
             const totalResponsesEl = card.querySelector('.info-row:nth-child(2) .info-val');
             if (totalResponsesEl) {
-                const totalCount = (info.existing_responses ?? 0) + (info.total_processed ?? 0);
-                totalResponsesEl.textContent = totalCount;
+                totalResponsesEl.textContent = jobData.total_responses ?? 0;
             }
         }
 
@@ -2079,9 +2600,14 @@
         async function fetchCandidates(jobId) {
             try {
                 const response = await fetch(`${API}/forms/jobs/${jobId}/candidates`);
-                if (!response.ok) return [];
+                if (!response.ok) {
+                    console.warn(`No candidates found for ${jobId}: ${response.status}`);
+                    return [];
+                }
                 const data = await response.json();
-                return data.candidates || [];
+                const candidates = data.candidates || [];
+                console.log(`Fetched ${candidates.length} candidates for ${jobId}`);
+                return candidates;
             } catch (error) {
                 console.error(`Failed to fetch candidates for ${jobId}:`, error);
                 return [];
@@ -2091,12 +2617,11 @@
         function renderCandidates(candidates) {
             if (candidates.length === 0) {
                 return `
-                    <div class="candidates-section">
-                        <div class="candidates-header">
+                    <div class="candidates-section-empty">
+                        <div class="candidates-empty-state">
                             <span class="candidates-title">Candidates</span>
-                            <span class="candidates-count">0 applicants</span>
+                            <span class="candidates-count-empty">0 applicants</span>
                         </div>
-                        <div class="no-candidates">No candidates yet. Waiting for form submissions...</div>
                     </div>
                 `;
             }
@@ -2139,13 +2664,22 @@
                 `;
             }).join('');
 
+            const uniqueId = `candidates-${Math.random().toString(36).substr(2, 9)}`;
+            
             return `
                 <div class="candidates-section">
-                    <div class="candidates-header">
-                        <span class="candidates-title">Candidates</span>
-                        <span class="candidates-count">${candidates.length} applicant${candidates.length !== 1 ? 's' : ''}</span>
+                    <div class="candidates-header" onclick="toggleCandidates('${uniqueId}')">
+                        <div class="candidates-header-left">
+                            <span class="candidates-title">Candidates</span>
+                            <span class="candidates-count">${candidates.length} applicant${candidates.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="candidates-toggle" id="toggle-${uniqueId}">▼</div>
                     </div>
-                    ${candidatesHTML}
+                    <div class="candidates-list" id="${uniqueId}">
+                        <div class="candidates-list-inner">
+                            ${candidatesHTML}
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -2166,7 +2700,15 @@
                 const container = document.getElementById("jobs-list");
                 container.innerHTML = "";
 
-                for (const [id, job] of Object.entries(jobs)) {
+                // Sort jobs by ID (newest first, since ID is timestamp-based)
+                const sortedJobs = Object.entries(jobs).sort((a, b) => {
+                    // Extract timestamp from job_TIMESTAMP format
+                    const timeA = parseInt(a[0].split('_')[1]) || 0;
+                    const timeB = parseInt(b[0].split('_')[1]) || 0;
+                    return timeB - timeA; // Descending order (newest first)
+                });
+
+                for (const [id, job] of sortedJobs) {
                 const card = document.createElement("div");
                 card.className = "job-card slide-up";
                 card.setAttribute("data-job-id", id);
@@ -2178,14 +2720,15 @@
           <div class="fw-card">
             <div class="fw-label">Job Skills & Requirements</div>
             <textarea class="fw-textarea" placeholder="Describe the key skills, qualifications, and requirements for this role. Be specific about technical skills, experience level, and any other criteria. AI will score resumes based on these requirements." rows="6"
-              oninput="jobs['${id}'].jobDescription=this.value;"
+              oninput="jobs['${id}'].jobDescription=this.value; updateGenerateButton('${id}');"
               onblur="saveJobDescription('${id}')">${esc(job.jobDescription || '')}</textarea>
             <div class="fw-label" style="margin-top:24px">Google Form Link</div>
             <div class="fw-row">
               <input class="fw-input" placeholder="https://docs.google.com/forms/d/XXXX/edit (use EDIT link, not Send/Preview)" value="${esc(job.url)}"
                 oninput="setUrl('${id}', this.value)"
                 onkeydown="if(event.key==='Enter')connectForm('${id}')" />
-              <button class="fw-btn" onclick="connectForm('${id}')" ${job.url.trim() ? '' : 'disabled'}>Connect →</button>
+              <button class="fw-btn" onclick="connectForm('${id}')" ${job.url.trim() ? '' : 'disabled'} title="Connect to existing Google Form">Connect →</button>
+              <button class="fw-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); margin-left: 8px;" onclick="generateForm('${id}')" ${(job.jobDescription || '').trim() && (job.title || '').trim() ? '' : 'disabled'} title="Auto-generate a new Google Form (requires job title and description)">✨ Generate Form</button>
             </div>
             <label class="fw-checkbox">
               <input type="checkbox" ${job.downloadExisting ? 'checked' : ''} onchange="jobs['${id}'].downloadExisting=this.checked; saveJobsToLocalStorage();" />
@@ -2253,11 +2796,7 @@
               </div>
               <div class="info-row">
                 <span class="info-label">Total responses</span>
-                <span class="info-val">${(info.existing_responses ?? 0) + (info.total_processed ?? 0)}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">New since monitoring started</span>
-                <span class="info-val accent">${info.total_processed ?? 0}</span>
+                <span class="info-val">${job.total_responses ?? 0}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Last checked</span>
@@ -2292,6 +2831,23 @@
                 }
             } finally {
                 isRendering = false; // Reset flag when done
+            }
+        }
+
+        function toggleCandidates(id) {
+            const list = document.getElementById(id);
+            const toggle = document.getElementById(`toggle-${id}`);
+            
+            if (list && toggle) {
+                const isExpanded = list.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    list.classList.remove('expanded');
+                    toggle.classList.remove('expanded');
+                } else {
+                    list.classList.add('expanded');
+                    toggle.classList.add('expanded');
+                }
             }
         }
 

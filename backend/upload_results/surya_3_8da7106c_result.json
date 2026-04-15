@@ -1,0 +1,29 @@
+{
+  "name": "surya",
+  "email": "sarvinsurya2004@gmail.com",
+  "row": 3,
+  "job_id": "job_1776281003937",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/surya_3_8da7106c_71762231047_SARVINSURYA_K_Resume - Sarvinsurya K.pdf",
+  "parse_ok": true,
+  "word_count": 372,
+  "score": 38,
+  "threshold": 50.0,
+  "above_threshold": false,
+  "reasoning": "1) The role's domain is Data Science/Machine Learning/AI, as it involves collecting, cleaning, and analyzing data, writing programs using languages like Python and SQL, and assisting in building simple machine learning models. 2) The candidate's primary domain from their projects is Web Development, as their main projects (Fab-Track, BookMart, FabUnitX) focus on building web applications, e-commerce platforms, and websites, with no direct involvement in data science or machine learning projects.",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": [],
+  "scheduled_event": {
+    "ok": true,
+    "event_link": "https://www.google.com/calendar/event?eid=bTU1NWlqY3F1MGtyOWtrcHNpdTVya2E3cW8gc2Fydmluc3VyeWEwNkBt",
+    "meet_link": "https://meet.google.com/tic-xjzj-fpt",
+    "start": "2026-04-16T05:05:00+00:00",
+    "end": "2026-04-16T05:35:00+00:00",
+    "event_id": "m555ijcqu0kr9kkpsiu5rka7qo",
+    "calendar_id": "primary",
+    "candidate_invited": true,
+    "candidate_email": "sarvinsurya2004@gmail.com",
+    "error": null
+  },
+  "reschedule_count": 0
+}

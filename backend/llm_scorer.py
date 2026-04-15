@@ -249,10 +249,25 @@ EXAMPLE - Both web devs, both rejected for DS role:
 → Must be 10+ point difference based on interest+certification
 
 Threshold for this role: {threshold}
-Give PRECISE, VARIED scores (NOT multiples of 5/10): use 28, 34, 38, 42, 46, 49, 52, 58, 63, 71, 78, 84, 88, 91, 94, 97
+
+🚨 CRITICAL SCORING REQUIREMENTS:
+1. NO TWO CANDIDATES should receive the SAME score (vary by at least 3-6 points minimum)
+2. NEVER use round numbers: BANNED scores: 40, 42, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100
+3. Use PRECISE, IRREGULAR scores: 28, 33, 37, 41, 44, 48, 51, 56, 59, 62, 67, 72, 76, 79, 83, 87, 91, 94, 97
+4. Even tiny differences (one more certification, slightly better wording) = 3-5 point difference
+5. If you find yourself giving the same score twice, ADD/SUBTRACT 4-7 points based on ANY small factor
+
+SCORING EXAMPLES for rejected candidates (different wrong domains):
+- DevOps candidate for DS role: 36 (has Python, Docker, no DS interest)
+- DevOps candidate for DS role: 44 (has Python, Docker, + ML course, mentions "data analysis")
+→ 8 point difference for the ML course + interest
+
+- Web dev for DS role: 39 (React, Node, Python, no DS work)
+- Web dev for DS role: 47 (React, Node, Python, + Pandas, mentions "interested in AI")
+→ 8 point difference for Pandas + interest
 
 Return ONLY valid JSON:
-{{"score": <integer 0-100>, "above_threshold": <boolean>, "reasoning": "<State: 1) Role's domain, 2) Candidate's primary domain from projects, 3) Match decision, 4) If rejected: what factors affected their score within rejection range>"}}"""
+{{"score": <integer 0-100>, "above_threshold": <boolean>, "reasoning": "<State: 1) Role's domain, 2) Candidate's primary domain from projects, 3) Match decision, 4) If rejected: what factors affected their score within rejection range, 5) Why this SPECIFIC score (not 3 points higher/lower)>"}}"""
 
             resp = client.chat.completions.create(
                 model=GROQ_MODEL,
@@ -260,7 +275,8 @@ Return ONLY valid JSON:
                     {"role": "system", "content": system_msg},
                     {"role": "user", "content": user_msg},
                 ],
-                temperature=0.9,  # High temp to force score differentiation
+                temperature=1.2,  # Very high temp to force score variation
+                top_p=0.95,  # Add nucleus sampling for more diversity
             )
             raw = (resp.choices[0].message.content or "").strip()
             # Strip markdown code block if present

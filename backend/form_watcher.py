@@ -26,9 +26,10 @@ BACKEND_DIR = Path(__file__).resolve().parent
 
 # Form watcher + calendar scheduling (meetings must be visible on HR calendar)
 SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets.readonly",
-    "https://www.googleapis.com/auth/drive.readonly",
-    "https://www.googleapis.com/auth/forms.responses.readonly",
+    "https://www.googleapis.com/auth/spreadsheets",  # Full access for form-linked sheets
+    "https://www.googleapis.com/auth/drive.readonly",  # Read access to ALL Drive files (including form uploads)
+    "https://www.googleapis.com/auth/forms.body",  # Required to create/edit forms
+    "https://www.googleapis.com/auth/forms.responses.readonly",  # Read form responses
     "https://www.googleapis.com/auth/calendar.events",
     "https://www.googleapis.com/auth/calendar.freebusy",
 ]

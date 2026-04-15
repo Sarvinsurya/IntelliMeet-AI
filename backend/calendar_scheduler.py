@@ -262,19 +262,62 @@ def create_calendar_event(creds, calendar_id: str, start_dt: datetime, end_dt: d
 
 def schedule_interview(creds, calendar_id: str, candidate_name: str, candidate_email: str,
                        job_id: str, duration_minutes: int = DEFAULT_DURATION_MINUTES,
-                       days_ahead: int = DEFAULT_DAYS_AHEAD, interviewer_email: str = None):
+                       days_ahead: int = DEFAULT_DAYS_AHEAD, interviewer_email: str = None,
+                       start_from_date: datetime = None, previous_slot_time: datetime = None):
     """
     Find first free slot and create an interview event on the HR calendar. Invite candidate (and optionally interviewer).
     If interviewer_email is set, they are added as attendee so they get the invite and reschedule runs if they decline.
+    
+    Args:
+        start_from_date: If provided, only consider slots from this date onwards
+        previous_slot_time: If provided (for rescheduling), use to determine FN/AN preference
+    
     Returns dict: { "ok": bool, "event_link": str|None, "start": str, "end": str, "error": str|None }
     """
     try:
         slots = list(get_free_slots(creds, calendar_id=calendar_id, days_ahead=days_ahead, duration_minutes=duration_minutes))
     except Exception as e:
         return {"ok": False, "event_link": None, "start": None, "end": None, "error": str(e)}
+    
+    # Filter slots based on start_from_date if provided
+    if start_from_date:
+        slots = [(s, e) for s, e in slots if s >= start_from_date]
+    
     if not slots:
         return {"ok": False, "event_link": None, "start": None, "end": None, "error": "No free slots found in the next %d days." % days_ahead}
-    start_dt, end_dt = slots[0]
+    
+    # If previous_slot_time provided, try to pick based on FN/AN preference
+    if previous_slot_time and start_from_date:
+        # Determine if previous was FN (before 1 PM) or AN (after 2 PM)
+        ist_tz = timezone(timedelta(hours=5, minutes=30))
+        prev_time_ist = previous_slot_time.astimezone(ist_tz)
+        was_forenoon = prev_time_ist.hour < 13  # Before 1 PM IST
+        
+        # For same-day reschedule: prefer opposite session
+        # If was FN, prefer AN (>= 14:00); if was AN, prefer next day FN
+        target_date = start_from_date.date()
+        
+        if was_forenoon:
+            # Previous was FN, try to find AN slot (>= 14:00) on same day
+            afternoon_slots = [(s, e) for s, e in slots 
+                              if s.date() == target_date and s.astimezone(ist_tz).hour >= 14]
+            if afternoon_slots:
+                start_dt, end_dt = afternoon_slots[0]
+            else:
+                # No AN slots today, take first available
+                start_dt, end_dt = slots[0]
+        else:
+            # Previous was AN, prefer next day FN (< 13:00)
+            next_day = target_date + timedelta(days=1)
+            forenoon_slots = [(s, e) for s, e in slots 
+                             if s.date() >= next_day and s.astimezone(ist_tz).hour < 13]
+            if forenoon_slots:
+                start_dt, end_dt = forenoon_slots[0]
+            else:
+                # No FN slots tomorrow, take first available
+                start_dt, end_dt = slots[0]
+    else:
+        start_dt, end_dt = slots[0]
     summary = f"Interview: {candidate_name}"
     description = f"Automatically scheduled for candidate above threshold (Job: {job_id})."
     attendee_emails = []

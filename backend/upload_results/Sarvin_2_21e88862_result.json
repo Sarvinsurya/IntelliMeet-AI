@@ -1,0 +1,46 @@
+{
+  "name": "Sarvin",
+  "email": "sarvinsurya2704@gmail.com",
+  "row": 2,
+  "job_id": "job_1776286448156",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/Sarvin_2_21e88862_71762231047_SARVINSURYA_K_Resume - Sarvinsurya K.pdf",
+  "parse_ok": true,
+  "word_count": 372,
+  "score": 60,
+  "threshold": 50.0,
+  "above_threshold": true,
+  "reasoning": "Matched 9/15 terms from job description. Matched: systems, linux, python, version, control, git, github, tools, actions.",
+  "source": "keyword_fallback",
+  "matched_keywords": [
+    "systems",
+    "linux",
+    "python",
+    "version",
+    "control",
+    "git",
+    "github",
+    "tools",
+    "actions"
+  ],
+  "missing_keywords": [
+    "operating",
+    "basics",
+    "commands",
+    "scripting",
+    "bash",
+    "jenkins"
+  ],
+  "scheduled_event": {
+    "ok": true,
+    "event_link": "https://www.google.com/calendar/event?eid=ZG0zcXViaWVpMmVrZTdhMm9mY3Jxbm5qcTQgc2Fydmluc3VyeWEwNkBt",
+    "meet_link": "https://meet.google.com/ymt-jvfg-uyy",
+    "start": "2026-04-16T04:30:00+00:00",
+    "end": "2026-04-16T05:00:00+00:00",
+    "event_id": "dm3qubiei2eke7a2ofcrqnnjq4",
+    "calendar_id": "primary",
+    "candidate_invited": true,
+    "candidate_email": "sarvinsurya2704@gmail.com",
+    "error": null
+  },
+  "reschedule_count": 0
+}

@@ -1,0 +1,38 @@
+{
+  "name": "sarvinsurya",
+  "email": "sarvinsurya2704@gmail.com",
+  "row": 2,
+  "job_id": "job_1776285256850",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/sarvinsurya_2_ae490c42_71762231047_SARVINSURYA_K_Resume - Sarvinsurya K.pdf",
+  "parse_ok": true,
+  "word_count": 372,
+  "score": 38,
+  "threshold": 50.0,
+  "above_threshold": false,
+  "reasoning": "1) The role's domain is Data Science/Machine Learning/AI, as it involves working with data to support decision-making, building simple machine learning models, and analyzing data. 2) The candidate's primary domain is Web Development/Mobile Development, based on their projects such as Esar Bank (online banking platform), DocSync (document collaboration app), and ChitHub (desktop application for chit-fund management), which are primarily focused on web and mobile application development. 3) The do",
+  "source": "llm",
+  "matched_keywords": [],
+  "missing_keywords": [],
+  "scheduled_event": {
+    "ok": true,
+    "event_link": "https://www.google.com/calendar/event?eid=Z212b2c0cmYzYjBsaDJiZ3JnYTQzc3F1bjAgc2Fydmluc3VyeWEwNkBt",
+    "meet_link": "https://meet.google.com/xgu-qxjw-pcs",
+    "start": "2026-04-16T05:05:00+00:00",
+    "end": "2026-04-16T05:35:00+00:00",
+    "event_id": "gmvog4rf3b0lh2bgrga43squn0",
+    "calendar_id": "primary",
+    "candidate_invited": true,
+    "candidate_email": "sarvinsurya2704@gmail.com",
+    "error": null
+  },
+  "reschedule_count": 1,
+  "rescheduled_events": [
+    {
+      "previous_event_id": "ph921edqmj9279f4p2rvrcqkbc",
+      "reason": "attendee_declined",
+      "declined_emails": [
+        "sarvinsurya2704@gmail.com"
+      ]
+    }
+  ]
+}
