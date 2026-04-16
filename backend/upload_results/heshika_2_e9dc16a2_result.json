@@ -1,0 +1,46 @@
+{
+  "name": "heshika",
+  "email": "heshika1744@gmail.com",
+  "row": 2,
+  "job_id": "job_1776304978653",
+  "resume_file": "/Users/sarvinsurya/Documents/CIT - College/SEM - 8/AI - laboratory/Project/main/backend/uploads/heshika_2_e9dc16a2_HESHIKA_VARTHINI_S_FlowCV_Resume_2026-04-15 - Heshika varthini.pdf",
+  "parse_ok": true,
+  "word_count": 814,
+  "score": 73,
+  "threshold": 50.0,
+  "above_threshold": true,
+  "reasoning": "Matched 11/15 terms from job description. Matched: machine, learning, deep, supervised, nlp, computer, vision, model, design, optimization.",
+  "source": "keyword_fallback",
+  "matched_keywords": [
+    "machine",
+    "learning",
+    "deep",
+    "supervised",
+    "nlp",
+    "computer",
+    "vision",
+    "model",
+    "design",
+    "optimization",
+    "python"
+  ],
+  "missing_keywords": [
+    "advanced",
+    "unsupervised",
+    "architecture",
+    "programming"
+  ],
+  "scheduled_event": {
+    "ok": true,
+    "event_link": "https://www.google.com/calendar/event?eid=Mm1ydWw3dmRsOWxjMGx2cWtybmc2bDFtaTQgc2Fydmluc3VyeWEwNkBt",
+    "meet_link": "https://meet.google.com/ucc-bkqg-qmw",
+    "start": "2026-04-16T05:40:00+00:00",
+    "end": "2026-04-16T06:10:00+00:00",
+    "event_id": "2mrul7vdl9lc0lvqkrng6l1mi4",
+    "calendar_id": "primary",
+    "candidate_invited": true,
+    "candidate_email": "heshika1744@gmail.com",
+    "error": null
+  },
+  "reschedule_count": 0
+}
